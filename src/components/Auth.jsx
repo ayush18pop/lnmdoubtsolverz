@@ -103,7 +103,7 @@ export function Auth() {
             minLength={6}
             error={formError && !password ? "Password is required" : null}
           />
-          <Checkbox label="Keep me logged in" mt="xl" size="md" />
+          {/* {/* <Checkbox label="Keep me logged in" mt="xl" size="md" /> */}
           <Button 
             fullWidth 
             mt="xl" 
@@ -112,7 +112,7 @@ export function Auth() {
             loading={loading}
           >
             Login
-          </Button>
+          </Button> 
 
           <Text ta="center" mt="md">
             Don&apos;t have an account?{" "}

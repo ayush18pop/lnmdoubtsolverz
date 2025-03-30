@@ -6,6 +6,19 @@ import {
   signOut,
 } from "firebase/auth";
 
+// Load persisted state from localStorage
+const loadAuthState = () => {
+  try {
+    const serializedState = localStorage.getItem("authState");
+    if (serializedState === null) {
+      return undefined;
+    }
+    return JSON.parse(serializedState);
+  } catch (err) {
+    return undefined;
+  }
+};
+
 export const signupUser = createAsyncThunk(
   "auth/signupUser",
   async ({ email, password }, thunkAPI) => {
@@ -95,6 +108,8 @@ export const logoutUser = createAsyncThunk(
     try {
       await signOut(auth);
       console.log("logout done");
+      // Clear persisted state on logout
+      localStorage.removeItem("authState");
       return null;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.message);
@@ -102,7 +117,7 @@ export const logoutUser = createAsyncThunk(
   }
 );
 
-const initialState = {
+const initialState = loadAuthState() || {
   user: null,
   isAuthenticated: false,
   loading: false,
