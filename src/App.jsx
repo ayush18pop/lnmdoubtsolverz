@@ -1,7 +1,11 @@
+import { useState } from 'react'
 import { MantineProvider, createTheme } from '@mantine/core'
 import '@mantine/core/styles.css'
+import reactLogo from './assets/react.svg'
+import viteLogo from '/vite.svg'
 import './App.css'
 import { Outlet } from 'react-router-dom'
+import Navbar from './components/Navbar'
 
 const theme = createTheme({
   /** Set the primary color */
@@ -50,10 +54,14 @@ const theme = createTheme({
   },
 });
 
+
 function App() {
+  const [count, setCount] = useState(0)
+
   return (
     <MantineProvider theme={theme}>
-      <div className="min-h-screen bg-app-dark">
+      
+      <div className="min-h-screen">
         <Outlet />
       </div>
     </MantineProvider>

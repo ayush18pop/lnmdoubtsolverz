@@ -13,6 +13,7 @@ import { loginUser, clearError } from "../store/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import classes from "./AuthPage.module.css";
 import { useNavigate } from "react-router-dom";
+import { validateLNMIITEmail } from "../utils/validation";
 
 export function Auth() {
   const dispatch = useDispatch();
@@ -39,18 +40,24 @@ export function Auth() {
 
   const validateForm = () => {
     setFormError("");
+    
+    // Validate email format
+    const emailValidation = validateLNMIITEmail(email);
+    if (!emailValidation.isValid) {
+      setFormError(emailValidation.message);
+      return false;
+    }
+
     if (!email || !password) {
       setFormError("All fields are required");
       return false;
     }
-    if (!email.includes('@') || !email.includes('.')) {
-      setFormError("Please enter a valid email address");
-      return false;
-    }
+
     if (password.length < 6) {
       setFormError("Password must be at least 6 characters long");
       return false;
     }
+
     return true;
   };
 
@@ -71,64 +78,47 @@ export function Auth() {
   return (
     <div className={classes.wrapper}>
       <Paper className={classes.form} radius={0} p={30}>
+        <Title order={2} className={classes.title} ta="center" mt="md" mb={50}>
+          Welcome back!
+        </Title>
+
+        {(formError || authError) && (
+          <Text c="red" ta="center" mb="sm">
+            {formError || authError}
+          </Text>
+        )}
+
         <form onSubmit={handleLogin}>
-          <Title order={2} className={classes.title} ta="center" mt="md" mb={50}>
-            Welcome back!
-          </Title>
-
-          {(formError || authError) && (
-            <Text c="red" ta="center" mb="md">
-              {formError || authError}
-            </Text>
-          )}
-
           <TextInput
-            label="Email address"
-            placeholder="hello@gmail.com"
-            size="md"
+            label="Email"
+            placeholder="23ucs666@lnmiit.ac.in"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            type="email"
-            error={formError && !email ? "Email is required" : null}
+            size="md"
           />
+
           <PasswordInput
             label="Password"
             placeholder="Your password"
-            mt="md"
-            size="md"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            minLength={6}
-            error={formError && !password ? "Password is required" : null}
+            mt="md"
+            size="md"
           />
-          {/* {/* <Checkbox label="Keep me logged in" mt="xl" size="md" /> */}
-          <Button 
-            fullWidth 
-            mt="xl" 
-            size="md" 
-            type="submit"
-            loading={loading}
-          >
-            Login
-          </Button> 
 
-          <Text ta="center" mt="md">
-            Don&apos;t have an account?{" "}
-            <Anchor 
-              href="/signup" 
-              fw={700}
-              onClick={(e) => {
-                e.preventDefault();
-                dispatch(clearError());
-                navigate('/signup');
-              }}
-            >
-              Register
-            </Anchor>
-          </Text>
+          <Button type="submit" fullWidth mt="xl" size="md" loading={loading}>
+            Sign in
+          </Button>
         </form>
+
+        <Text ta="center" mt="md">
+          Don&apos;t have an account?{" "}
+          <Anchor href="/signup" fw={700}>
+            Register
+          </Anchor>
+        </Text>
       </Paper>
     </div>
   );

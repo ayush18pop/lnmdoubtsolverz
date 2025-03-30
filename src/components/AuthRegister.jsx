@@ -11,6 +11,7 @@ import { useState } from "react";
 import { signupUser } from "../store/authSlice"; // Import register function
 import { useDispatch, useSelector } from "react-redux";
 import classes from "./AuthPage.module.css";
+import { validateLNMIITEmail } from "../utils/validation";
 
 export default function AuthRegister() {
   const dispatch = useDispatch();
@@ -21,18 +22,30 @@ export default function AuthRegister() {
   const { loading, error: authError } = useSelector((state) => state.auth);
 
   const validateForm = () => {
+    setError("");
+
+    // Validate email format
+    const emailValidation = validateLNMIITEmail(email);
+    if (!emailValidation.isValid) {
+      setError(emailValidation.message);
+      return false;
+    }
+
     if (!email || !password || !confirmPassword) {
       setError("All fields are required");
       return false;
     }
+
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return false;
     }
+
     if (password.length < 6) {
       setError("Password must be at least 6 characters long");
       return false;
     }
+
     return true;
   };
 
@@ -56,41 +69,43 @@ export default function AuthRegister() {
           </Text>
         )}
 
-        <TextInput
-          label="Email address"
-          placeholder="hello@gmail.com"
-          size="md"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <PasswordInput
-          label="Password"
-          placeholder="Your password"
-          mt="md"
-          size="md"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <PasswordInput
-          label="Confirm Password"
-          placeholder="Confirm your password"
-          mt="md"
-          size="md"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-        />
-        <Button 
-          fullWidth 
-          mt="xl" 
-          size="md" 
-          onClick={handleRegister}
-          loading={loading}
-        >
-          Register
-        </Button>
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          handleRegister();
+        }}>
+          <TextInput
+            label="Email"
+            placeholder="23ucs666@lnmiit.ac.in"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            size="md"
+          />
+
+          <PasswordInput
+            label="Password"
+            placeholder="Your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            mt="md"
+            size="md"
+          />
+
+          <PasswordInput
+            label="Confirm Password"
+            placeholder="Confirm your password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            mt="md"
+            size="md"
+          />
+
+          <Button type="submit" fullWidth mt="xl" size="md" loading={loading}>
+            Register
+          </Button>
+        </form>
 
         <Text ta="center" mt="md">
           Already have an account?{" "}
