@@ -12,9 +12,11 @@ import {
   IconReceipt2,
   IconSettings,
   IconUpload,
+  IconUser,
 } from '@tabler/icons-react';
 import { Code, Group, Text } from '@mantine/core';
 import { MantineLogo } from '@mantinex/mantine-logo';
+
 import classes from './NavbarSimpleColored.module.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../store/authSlice';
@@ -24,7 +26,7 @@ const data = [
   { link: '/', label: 'Home', icon: IconHome },
   { link: '/feed', label: 'Doubt Feed', icon: IconBrandFeedly },
   { link: '/postdoubt', label: 'Post Your Doubt', icon: IconUpload },
-  { link: '', label: 'SSH Keys', icon: IconKey },
+  { link: '/profile', label: 'Profile', icon: IconUser },
   { link: '', label: 'Databases', icon: IconDatabaseImport },
   { link: '', label: 'Authentication', icon: Icon2fa },
   { link: '', label: 'Other Settings', icon: IconSettings },

@@ -3,7 +3,6 @@ import Navbar  from '../components/Navbar.jsx'
 import { useSelector } from 'react-redux'
 
 function Feed() {
-  const { isAuthenticated } = useSelector(state => state.auth);
 
   return (
     <div className="flex">

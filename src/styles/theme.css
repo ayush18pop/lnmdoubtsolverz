@@ -1,0 +1,36 @@
+/* Base styles */
+body {
+  @apply bg-app-dark text-app-light;
+}
+
+/* Component-specific styles */
+.navbar {
+  @apply bg-dark-darker border-r border-gray-800;
+}
+
+.card {
+  @apply bg-dark border border-gray-800;
+}
+
+.button-primary {
+  @apply bg-primary hover:bg-primary-dark text-white;
+}
+
+.button-secondary {
+  @apply bg-dark-light hover:bg-dark text-app-light;
+}
+
+/* Form elements */
+input, textarea {
+  @apply bg-dark-light border-gray-700 text-app-light;
+}
+
+/* Links */
+a {
+  @apply text-primary hover:text-primary-light;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  @apply text-app-light;
+} 

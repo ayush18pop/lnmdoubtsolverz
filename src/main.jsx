@@ -1,16 +1,18 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+import './styles/theme.css'
 import App from './App.jsx'
 import { RouterProvider, createBrowserRouter, Navigate } from 'react-router-dom'
 import Home from './pages/Home.jsx'
-import { MantineProvider } from '@mantine/core'
 import { store } from "./store/store.js";
 import { Provider } from 'react-redux'
 import LoginPage from './pages/LoginPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
 import { useSelector } from 'react-redux'
 import Feed from './pages/Feed.jsx'
+import PostDoubt from './pages/PostDoubt.jsx'
+import Profile from './pages/Profile.jsx'
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -74,6 +76,22 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: "/postdoubt",
+        element: (
+          <ProtectedRoute>
+            <PostDoubt />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/profile",
+        element: (
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        ),
+    },
+      {
         path: "*",
         element: <AuthStateRedirect />
       }
@@ -91,9 +109,7 @@ function AuthStateRedirect() {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Provider store={store}>
-      <MantineProvider>
-        <RouterProvider router={router}/>
-      </MantineProvider>
+      <RouterProvider router={router}/>
     </Provider>
   </StrictMode>,
 )
