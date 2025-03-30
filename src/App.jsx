@@ -1,34 +1,36 @@
 import { useState } from 'react'
+import { MantineProvider, createTheme } from '@mantine/core'
+import '@mantine/core/styles.css'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
+import { Outlet } from 'react-router-dom'
+
+const theme = createTheme({
+  primaryColor: 'violet',
+  colors: {
+    'ocean-blue': [
+      '#7AD1DD',
+      '#5FCCDB',
+      '#44CADC',
+      '#2AC9DE',
+      '#1AC2D9',
+      '#11B7CD',
+      '#09ADC3',
+      '#0E99AC',
+      '#128797',
+      '#147885'
+    ]
+  }
+});
 
 function App() {
   const [count, setCount] = useState(0)
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <MantineProvider theme={theme}>
+      <Outlet />
+    </MantineProvider>
   )
 }
 
