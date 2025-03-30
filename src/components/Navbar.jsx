@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   Icon2fa,
   IconBellRinging,
+  IconBrandFeedly,
   IconDatabaseImport,
   IconFingerprint,
   IconHome,
@@ -10,7 +11,7 @@ import {
   IconQuestionMark,
   IconReceipt2,
   IconSettings,
-  IconSwitchHorizontal,
+  IconUpload,
 } from '@tabler/icons-react';
 import { Code, Group, Text } from '@mantine/core';
 import { MantineLogo } from '@mantinex/mantine-logo';
@@ -21,21 +22,20 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 const data = [
   { link: '/', label: 'Home', icon: IconHome },
-  { link: '/doubtfeed', label: 'Doubt Feed', icon: IconQuestionMark },
-  { link: '', label: 'Security', icon: IconFingerprint },
+  { link: '/feed', label: 'Doubt Feed', icon: IconBrandFeedly },
+  { link: '/postdoubt', label: 'Post Your Doubt', icon: IconUpload },
   { link: '', label: 'SSH Keys', icon: IconKey },
   { link: '', label: 'Databases', icon: IconDatabaseImport },
   { link: '', label: 'Authentication', icon: Icon2fa },
   { link: '', label: 'Other Settings', icon: IconSettings },
 ];
 
-export function NavbarSimpleColored() {
+export default function Navbar() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAuthenticated } = useSelector(state => state.auth);
   const [active, setActive] = useState(() => {
-    // Set active based on current path
     const path = location.pathname;
     const activeItem = data.find(item => item.link === path);
     return activeItem ? activeItem.label : 'Home';
@@ -53,8 +53,15 @@ export function NavbarSimpleColored() {
 
   // If not authenticated, don't render the navbar
   if (!isAuthenticated) {
+    
     return null;
   }
+
+  const handleNavigation = (event, item) => {
+    event.preventDefault();
+    setActive(item.label);
+    navigate(item.link);
+  };
 
   const links = data.map((item) => (
     <a
@@ -62,11 +69,7 @@ export function NavbarSimpleColored() {
       data-active={item.label === active || undefined}
       href={item.link}
       key={item.label}
-      onClick={(event) => {
-        event.preventDefault();
-        setActive(item.label);
-        navigate(item.link);
-      }}
+      onClick={(event) => handleNavigation(event, item)}
     >
       <item.icon className={classes.linkIcon} stroke={1.5} />
       <span>{item.label}</span>

@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { NavbarSimpleColored } from '../components/Navbar';
+import Navbar from '../components/Navbar';
 function Home() {
    
   
     return (
       <div className="w-full py-8">
-      <NavbarSimpleColored/>
+      <Navbar/>
          Hell
          
       </div>

@@ -15,6 +15,7 @@ export const signupUser = createAsyncThunk(
         email,
         password
       );
+      console.log("signup done, user signed up");
       // After successful signup, automatically log in
       return userCredential.user;
     } catch (error) {
@@ -53,6 +54,7 @@ export const loginUser = createAsyncThunk(
         email,
         password
       );
+      console.log("signin done, user signed in");
       return userCredential.user;
     } catch (error) {
       // Convert Firebase error codes to user-friendly messages
@@ -92,6 +94,7 @@ export const logoutUser = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       await signOut(auth);
+      console.log("logout done");
       return null;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.message);
