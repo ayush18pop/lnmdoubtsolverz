@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { 
   TextInput, 
   SegmentedControl, 
@@ -23,6 +23,7 @@ import { useSelector } from 'react-redux';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 import Navbar from '../components/Navbar';
+import classes from './DropzoneButton.module.css';
 
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
@@ -57,6 +58,8 @@ export default function PostDoubt() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [uploadProgress, setUploadProgress] = useState(0);
+
+  const openRef = useRef(null);
 
   const validateForm = () => {
     if (!doubtTitle.trim()) {
@@ -272,30 +275,49 @@ export default function PostDoubt() {
                         </Stack>
                       </Paper>
                     ) : (
-                      <Dropzone
-                        onDrop={(files) => setImage(files[0])}
-                        accept={[MIME_TYPES.jpeg, MIME_TYPES.png]}
-                        maxSize={5 * 1024 ** 2}
-                        multiple={false}
-                      >
-                        <Group justify="center">
-                          <Dropzone.Accept>
-                            <IconDownload size={50} color={theme.colors.violet[6]} stroke={1.5} />
-                          </Dropzone.Accept>
-                          <Dropzone.Reject>
-                            <IconX size={50} color={theme.colors.red[6]} stroke={1.5} />
-                          </Dropzone.Reject>
-                          <Dropzone.Idle>
-                            <IconCloudUpload size={50} stroke={1.5} />
-                          </Dropzone.Idle>
-                        </Group>
+                      <div className={classes.wrapper}>
+                        <Dropzone
+                          openRef={openRef}
+                          onDrop={(files) => setImage(files[0])}
+                          className={classes.dropzone}
+                          radius="md"
+                          accept={[MIME_TYPES.jpeg, MIME_TYPES.png]}
+                          maxSize={5 * 1024 ** 2}
+                        >
+                          <div style={{ pointerEvents: 'none' }}>
+                            <Group justify="center">
+                              <Dropzone.Accept>
+                                <IconDownload size={50} color={theme.colors.violet[6]} stroke={1.5} />
+                              </Dropzone.Accept>
+                              <Dropzone.Reject>
+                                <IconX size={50} color={theme.colors.red[6]} stroke={1.5} />
+                              </Dropzone.Reject>
+                              <Dropzone.Idle>
+                                <IconCloudUpload size={50} stroke={1.5} className={classes.icon} />
+                              </Dropzone.Idle>
+                            </Group>
 
-                        <Text ta="center" fw={700} fz="lg" mt="xl">
-                          <Dropzone.Accept>Drop image here</Dropzone.Accept>
-                          <Dropzone.Reject>Only images under 5MB</Dropzone.Reject>
-                          <Dropzone.Idle>Upload an image of your doubt</Dropzone.Idle>
-                        </Text>
-                      </Dropzone>
+                            <Text ta="center" fw={700} fz="lg" mt="xl">
+                              <Dropzone.Accept>Drop image here</Dropzone.Accept>
+                              <Dropzone.Reject>Image must be less than 5mb</Dropzone.Reject>
+                              <Dropzone.Idle>Upload doubt image</Dropzone.Idle>
+                            </Text>
+                            <Text ta="center" fz="sm" mt="xs" c="dimmed">
+                              Drag and drop images here to upload. We can accept only <i>.jpg</i> and <i>.png</i> files that
+                              are less than 5mb in size.
+                            </Text>
+                          </div>
+                        </Dropzone>
+
+                        <Button 
+                          className={classes.control} 
+                          size="md" 
+                          radius="xl" 
+                          onClick={() => openRef.current?.()}
+                        >
+                          Select Image
+                        </Button>
+                      </div>
                     )}
                   </div>
                 )}

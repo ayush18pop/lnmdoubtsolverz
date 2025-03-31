@@ -12,9 +12,11 @@
   "dependencies": {
     "@mantine/core": "^7.17.3",
     "@mantine/dropzone": "^7.17.3",
+    "@mantine/notifications": "^7.17.3",
     "@mantinex/mantine-logo": "^1.1.0",
     "@reduxjs/toolkit": "^2.6.1",
     "@tabler/icons-react": "^3.31.0",
+    "date-fns": "^4.1.0",
     "firebase": "^11.5.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
