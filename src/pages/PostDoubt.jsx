@@ -1,22 +1,271 @@
-import React from 'react';
+import { useState } from 'react';
+import { 
+  TextInput, 
+  SegmentedControl, 
+  Button, 
+  Group, 
+  Text, 
+  useMantineTheme,
+  Paper,
+  Title,
+  Textarea,
+  Stack,
+  Alert,
+  Progress,
+  Container,
+  Select,
+  MultiSelect
+} from '@mantine/core';
+import { Dropzone, MIME_TYPES } from '@mantine/dropzone';
+import { IconCloudUpload, IconDownload, IconX, IconAlertCircle } from '@tabler/icons-react';
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../firebase/firebase';
 import Navbar from '../components/Navbar';
 
-function PostDoubt() {
-  return (
-    <div className="flex">
-      {/* Sidebar (Navbar) */}
-      <Navbar />
+const CATEGORIES = [
+  { value: 'academic', label: 'Academic' },
+  { value: 'technical', label: 'Technical' },
+  { value: 'general', label: 'General' },
+  { value: 'other', label: 'Other' }
+];
 
-      {/* Main Content */}
-      <div className="flex-1 py-8 ml-[250px] flex flex-col items-start">
-        <h1 className="text-2xl font-bold mb-4 text-black">Post Your Doubt</h1>
-        
-        <div className="w-full">
-          {/* Additional content goes here */}
-        </div>
+const TAGS = [
+  { value: 'urgent', label: 'Urgent' },
+  { value: 'homework', label: 'Homework' },
+  { value: 'project', label: 'Project' },
+  { value: 'exam', label: 'Exam' },
+  { value: 'assignment', label: 'Assignment' }
+];
+
+export default function PostDoubt() {
+  const navigate = useNavigate();
+  const { user } = useSelector(state => state.auth);
+  const theme = useMantineTheme();
+  
+  const [doubtType, setDoubtType] = useState('text');
+  const [doubtTitle, setDoubtTitle] = useState('');
+  const [doubtDescription, setDoubtDescription] = useState('');
+  const [category, setCategory] = useState('');
+  const [tags, setTags] = useState([]);
+  const [image, setImage] = useState(null);
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  const validateForm = () => {
+    if (!doubtTitle.trim()) {
+      setError('Please enter a doubt title');
+      return false;
+    }
+
+    if (!category) {
+      setError('Please select a category');
+      return false;
+    }
+
+    if (doubtType === 'text' && !doubtDescription.trim()) {
+      setError('Please describe your doubt');
+      return false;
+    }
+
+    if (doubtType === 'image' && !image) {
+      setError('Please upload an image');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleImageUpload = async (file) => {
+    try {
+      const storageRef = ref(storage, `doubts/${user.uid}/${Date.now()}_${file.name}`);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      return url;
+    } catch (err) {
+      console.error('Error uploading image:', err);
+      throw new Error('Failed to upload image');
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e?.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      if (!validateForm()) {
+        setLoading(false);
+        return;
+      }
+
+      let imageUrl = null;
+      if (doubtType === 'image' && image) {
+        imageUrl = await handleImageUpload(image);
+      }
+
+      const doubtData = {
+        title: doubtTitle,
+        description: doubtType === 'text' ? doubtDescription : '',
+        category,
+        tags,
+        imageURL: imageUrl,
+        email: user.email,
+        postedBy: `/users/${user.uid}`,
+        isAnonymous,
+        status: 'open',
+        commentCount: 0,
+        createdAt: serverTimestamp()
+      };
+
+      const doubtsCollection = collection(db, 'doubts');
+      await addDoc(doubtsCollection, doubtData);
+      navigate('/feed');
+    } catch (err) {
+      console.error('Error posting doubt:', err);
+      setError(err.message || 'Failed to post doubt. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen">
+      <div className='hidden md:block'>
+        <Navbar />
+      </div>
+      <div className="flex-1 md:ml-[300px] p-6">
+        <Container size="lg">
+          <Paper p="xl" radius="md" withBorder>
+            <Title order={2} mb="xl" className="text-left">Post Your Doubt</Title>
+
+            {error && (
+              <Alert icon={<IconAlertCircle size={16} />} title="Error" color="red" mb="md">
+                {error}
+              </Alert>
+            )}
+
+            <form onSubmit={handleSubmit}>
+              <Stack spacing="md">
+                <TextInput
+                  label="Doubt Title"
+                  placeholder="Enter your doubt title"
+                  value={doubtTitle}
+                  onChange={(event) => setDoubtTitle(event.currentTarget.value)}
+                  required
+                  size="md"
+                  classNames={{
+                    label: 'text-left',
+                    input: 'text-left'
+                  }}
+                />
+
+                <Select
+                  label="Category"
+                  placeholder="Select a category"
+                  data={CATEGORIES}
+                  value={category}
+                  onChange={setCategory}
+                  required
+                  classNames={{
+                    label: 'text-left',
+                    input: 'text-left'
+                  }}
+                />
+
+                <MultiSelect
+                  label="Tags"
+                  placeholder="Select tags"
+                  data={TAGS}
+                  value={tags}
+                  onChange={setTags}
+                  classNames={{
+                    label: 'text-left',
+                    input: 'text-left'
+                  }}
+                />
+
+                <SegmentedControl
+                  value={doubtType}
+                  onChange={setDoubtType}
+                  data={[
+                    { label: 'Text', value: 'text' },
+                    { label: 'Image', value: 'image' }
+                  ]}
+                  fullWidth
+                />
+
+                {doubtType === 'text' ? (
+                  <Textarea
+                    label="Doubt Description"
+                    placeholder="Describe your doubt in detail"
+                    value={doubtDescription}
+                    onChange={(event) => setDoubtDescription(event.currentTarget.value)}
+                    required
+                    minRows={4}
+                    size="md"
+                    classNames={{
+                      label: 'text-left',
+                      input: 'text-left'
+                    }}
+                  />
+                ) : (
+                  <Dropzone
+                    onDrop={(files) => setImage(files[0])}
+                    accept={[MIME_TYPES.jpeg, MIME_TYPES.png]}
+                    maxSize={5 * 1024 ** 2}
+                    multiple={false}
+                  >
+                    <Group justify="center">
+                      <Dropzone.Accept>
+                        <IconDownload size={50} color={theme.colors.violet[6]} stroke={1.5} />
+                      </Dropzone.Accept>
+                      <Dropzone.Reject>
+                        <IconX size={50} color={theme.colors.red[6]} stroke={1.5} />
+                      </Dropzone.Reject>
+                      <Dropzone.Idle>
+                        <IconCloudUpload size={50} stroke={1.5} />
+                      </Dropzone.Idle>
+                    </Group>
+
+                    <Text ta="center" fw={700} fz="lg" mt="xl">
+                      <Dropzone.Accept>Drop image here</Dropzone.Accept>
+                      <Dropzone.Reject>Only images under 5MB</Dropzone.Reject>
+                      <Dropzone.Idle>Upload an image of your doubt</Dropzone.Idle>
+                    </Text>
+                  </Dropzone>
+                )}
+
+                <SegmentedControl
+                  value={isAnonymous ? 'anonymous' : 'public'}
+                  onChange={(value) => setIsAnonymous(value === 'anonymous')}
+                  data={[
+                    { label: 'Public', value: 'public' },
+                    { label: 'Anonymous', value: 'anonymous' }
+                  ]}
+                  fullWidth
+                />
+
+                {loading && <Progress value={uploadProgress} size="sm" />}
+
+                <Button 
+                  type="submit" 
+                  fullWidth 
+                  size="md" 
+                  loading={loading}
+                  disabled={loading}
+                >
+                  Submit Doubt
+                </Button>
+              </Stack>
+            </form>
+          </Paper>
+        </Container>
       </div>
     </div>
   );
 }
-
-export default PostDoubt;

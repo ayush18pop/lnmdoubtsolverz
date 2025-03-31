@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@mantine/core": "^7.17.3",
+    "@mantine/dropzone": "^7.17.3",
     "@mantinex/mantine-logo": "^1.1.0",
     "@reduxjs/toolkit": "^2.6.1",
     "@tabler/icons-react": "^3.31.0",

@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import {
   Icon2fa,
+  IconAlertHexagon,
+  IconAlertSmall,
   IconBellRinging,
+  IconBook,
   IconBrandFeedly,
   IconDatabaseImport,
   IconFingerprint,
@@ -26,9 +29,11 @@ const data = [
   { link: '/', label: 'Home', icon: IconHome },
   { link: '/feed', label: 'Doubt Feed', icon: IconBrandFeedly },
   { link: '/postdoubt', label: 'Post Your Doubt', icon: IconUpload },
+  
+  { link: '/upcomingbt', label: 'Upcoming BTs', icon: IconAlertHexagon },
+  { link: '/resources', label: 'Resources', icon: IconBook },
   { link: '/profile', label: 'Profile', icon: IconUser },
-  { link: '', label: 'Databases', icon: IconDatabaseImport },
-  { link: '', label: 'Authentication', icon: Icon2fa },
+  
   { link: '', label: 'Other Settings', icon: IconSettings },
 ];
 
