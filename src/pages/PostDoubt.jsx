@@ -21,9 +21,11 @@ import { IconCloudUpload, IconDownload, IconX, IconAlertCircle } from '@tabler/i
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '../firebase/firebase';
+import { db } from '../firebase/firebase';
 import Navbar from '../components/Navbar';
+
+const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
 const CATEGORIES = [
   { value: 'academic', label: 'Academic' },
@@ -77,18 +79,42 @@ export default function PostDoubt() {
       return false;
     }
 
+    if (doubtType === 'image' && image && !image.type.match(/^image\/(jpeg|png)$/)) {
+      setError('Please upload only JPEG or PNG images');
+      return false;
+    }
+
     return true;
   };
 
   const handleImageUpload = async (file) => {
     try {
-      const storageRef = ref(storage, `doubts/${user.uid}/${Date.now()}_${file.name}`);
-      await uploadBytes(storageRef, file);
-      const url = await getDownloadURL(storageRef);
-      return url;
+      if (!user?.uid) {
+        throw new Error('User must be authenticated to upload images');
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', UPLOAD_PRESET);
+      formData.append('folder', `doubts/${user.uid}`);
+
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+        {
+          method: 'POST',
+          body: formData
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to upload image');
+      }
+
+      const data = await response.json();
+      return data.secure_url;
     } catch (err) {
-      console.error('Error uploading image:', err);
-      throw new Error('Failed to upload image');
+      console.error('Error in handleImageUpload:', err);
+      throw new Error('Failed to upload image. Please try again.');
     }
   };
 
@@ -96,6 +122,7 @@ export default function PostDoubt() {
     e?.preventDefault();
     setError('');
     setLoading(true);
+    setUploadProgress(0);
 
     try {
       if (!validateForm()) {
@@ -119,7 +146,8 @@ export default function PostDoubt() {
         isAnonymous,
         status: 'open',
         commentCount: 0,
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
+        type: doubtType
       };
 
       const doubtsCollection = collection(db, 'doubts');
@@ -130,6 +158,7 @@ export default function PostDoubt() {
       setError(err.message || 'Failed to post doubt. Please try again.');
     } finally {
       setLoading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -140,8 +169,8 @@ export default function PostDoubt() {
       </div>
       <div className="flex-1 md:ml-[300px] p-6">
         <Container size="lg">
-          <Paper p="xl" radius="md" withBorder>
-            <Title order={2} mb="xl" className="text-left">Post Your Doubt</Title>
+          {/* <Paper p="xl" radius="md" withBorder> */}
+            <Title order={2} mb="xl" className="text-left text-black">Post Your Doubt</Title>
 
             {error && (
               <Alert icon={<IconAlertCircle size={16} />} title="Error" color="red" mb="md">
@@ -214,30 +243,61 @@ export default function PostDoubt() {
                     }}
                   />
                 ) : (
-                  <Dropzone
-                    onDrop={(files) => setImage(files[0])}
-                    accept={[MIME_TYPES.jpeg, MIME_TYPES.png]}
-                    maxSize={5 * 1024 ** 2}
-                    multiple={false}
-                  >
-                    <Group justify="center">
-                      <Dropzone.Accept>
-                        <IconDownload size={50} color={theme.colors.violet[6]} stroke={1.5} />
-                      </Dropzone.Accept>
-                      <Dropzone.Reject>
-                        <IconX size={50} color={theme.colors.red[6]} stroke={1.5} />
-                      </Dropzone.Reject>
-                      <Dropzone.Idle>
-                        <IconCloudUpload size={50} stroke={1.5} />
-                      </Dropzone.Idle>
-                    </Group>
+                  <div>
+                    {image ? (
+                      <Paper p="md" withBorder>
+                        <Stack>
+                          <div className="relative">
+                            <img 
+                              src={URL.createObjectURL(image)} 
+                              alt="Preview" 
+                              className="max-h-[300px] w-full object-contain rounded"
+                            />
+                            <Button
+                              color="red"
+                              variant="filled"
+                              size="sm"
+                              className="absolute top-2 right-2"
+                              onClick={() => {
+                                URL.revokeObjectURL(image);
+                                setImage(null);
+                              }}
+                            >
+                              <IconX size={16} />
+                            </Button>
+                          </div>
+                          <Text size="sm" c="dimmed" ta="center">
+                            Click the X button to remove the image and upload a different one
+                          </Text>
+                        </Stack>
+                      </Paper>
+                    ) : (
+                      <Dropzone
+                        onDrop={(files) => setImage(files[0])}
+                        accept={[MIME_TYPES.jpeg, MIME_TYPES.png]}
+                        maxSize={5 * 1024 ** 2}
+                        multiple={false}
+                      >
+                        <Group justify="center">
+                          <Dropzone.Accept>
+                            <IconDownload size={50} color={theme.colors.violet[6]} stroke={1.5} />
+                          </Dropzone.Accept>
+                          <Dropzone.Reject>
+                            <IconX size={50} color={theme.colors.red[6]} stroke={1.5} />
+                          </Dropzone.Reject>
+                          <Dropzone.Idle>
+                            <IconCloudUpload size={50} stroke={1.5} />
+                          </Dropzone.Idle>
+                        </Group>
 
-                    <Text ta="center" fw={700} fz="lg" mt="xl">
-                      <Dropzone.Accept>Drop image here</Dropzone.Accept>
-                      <Dropzone.Reject>Only images under 5MB</Dropzone.Reject>
-                      <Dropzone.Idle>Upload an image of your doubt</Dropzone.Idle>
-                    </Text>
-                  </Dropzone>
+                        <Text ta="center" fw={700} fz="lg" mt="xl">
+                          <Dropzone.Accept>Drop image here</Dropzone.Accept>
+                          <Dropzone.Reject>Only images under 5MB</Dropzone.Reject>
+                          <Dropzone.Idle>Upload an image of your doubt</Dropzone.Idle>
+                        </Text>
+                      </Dropzone>
+                    )}
+                  </div>
                 )}
 
                 <SegmentedControl
@@ -263,7 +323,7 @@ export default function PostDoubt() {
                 </Button>
               </Stack>
             </form>
-          </Paper>
+          {/* </Paper> */}
         </Container>
       </div>
     </div>
