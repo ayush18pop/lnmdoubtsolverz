@@ -426,7 +426,7 @@ const uploadImage = async (file) => {
   return (
     <MantineProvider theme={{ colorScheme: 'dark' }}>
       <div style={{ backgroundColor: '#1A1B1E', minHeight: '100vh', color: '#C1C2C5' }}>
-        <div className="hidden md:block">
+        <div >
           <Navbar />
         </div>
         <div className='flex-1 md:ml-[300px] p-4'>

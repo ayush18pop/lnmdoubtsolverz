@@ -378,7 +378,7 @@ export default function Feed() {
     // Wrap the entire app in MantineProvider with dark theme to ensure consistent colors
     <MantineProvider theme={{ colorScheme: 'dark' }}>
       <div style={styles.appContainer}>
-        <div className='hidden md:block'>
+        <div >
           <Navbar />
         </div>
         <div className="flex-1 md:ml-[300px] p-4">

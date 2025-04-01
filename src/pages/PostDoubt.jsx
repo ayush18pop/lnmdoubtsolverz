@@ -389,7 +389,7 @@ export default function PostDoubt() {
         minHeight: '100vh',
         color: darkColors.lightText,
       }} className="flex">
-        <div className='hidden md:block'>
+        <div >
           <Navbar />
         </div>
         <div className="flex-1 md:ml-[300px] p-6">

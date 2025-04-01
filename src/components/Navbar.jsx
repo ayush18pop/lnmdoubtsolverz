@@ -1,113 +1,287 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
-  Icon2fa,
-  IconAlertHexagon,
-  IconAlertSmall,
-  IconBellRinging,
-  IconBook,
   IconBrandFeedly,
-  IconDatabaseImport,
-  IconFingerprint,
-  IconHome,
-  IconKey,
-  IconLogout,
-  IconQuestionMark,
-  IconReceipt2,
-  IconSettings,
   IconUpload,
+  IconBook,
   IconUser,
+  IconLogout,
+  IconMenu2,
+  IconX,
+  IconBell,
+  IconSearch,
+  IconMoon,
+  IconSun,
+  Icon123 as IconLogo,
 } from '@tabler/icons-react';
-import { Code, Group, Text } from '@mantine/core';
-import { MantineLogo } from '@mantinex/mantine-logo';
-
-import classes from './NavbarSimpleColored.module.css';
+import { 
+  Text, 
+  Group, 
+  Burger, 
+  Drawer, 
+  ScrollArea, 
+  UnstyledButton, 
+  Stack,
+  rem,
+  useMantineColorScheme,
+  ActionIcon,
+  Menu,
+  Avatar,
+  Tooltip,
+  Input,
+  Divider,
+  Button,
+  Badge,
+} from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../store/authSlice';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import classes from './Navbar.module.css';
 
-const data = [
-  // { link: '/', label: 'Home', icon: IconHome },
+const navItems = [
   { link: '/feed', label: 'Doubt Feed', icon: IconBrandFeedly },
   { link: '/postdoubt', label: 'Post Your Doubt', icon: IconUpload },
-  
-  // { link: '/upcomingbt', label: 'Upcoming BTs', icon: IconAlertHexagon },
-  // { link: '/resources', label: 'Resources', icon: IconBook },
-  // { link: '/profile', label: 'Profile', icon: IconUser },
-  
-  // { link: '', label: 'Other Settings', icon: IconSettings },
+  { link: '/resources', label: 'Resources', icon: IconBook, soon: true },
+  { link: '/profile', label: 'Profile', icon: IconUser },
 ];
 
 export default function Navbar() {
+  const [opened, { toggle, close }] = useDisclosure(false);
+  const [userMenuOpened, setUserMenuOpened] = useState(false);
+  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+  const dark = colorScheme === 'dark';
+  
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, isAuthenticated } = useSelector(state => state.auth);
-  const [active, setActive] = useState(() => {
-    const path = location.pathname;
-    if (path.startsWith('/feed')) return 'Doubt Feed'; 
-    const activeItem = data.find(item => item.link === path);
-    return activeItem ? activeItem.label : 'Home';
-  });
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
 
-  const handleLogout = async (event) => {
-    event.preventDefault();
-    try {
-      await dispatch(logoutUser()).unwrap();
-      navigate('/login');
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
+  // Close drawer on route change
+  useEffect(() => {
+    close();
+  }, [location.pathname]);
+
+  // Handle logout
+  const handleLogout = () => {
+    dispatch(logoutUser());
+    navigate('/');
   };
 
-  // If not authenticated, don't render the navbar
-  if (!isAuthenticated) {
-    
-    return null;
-  }
-
-  const handleNavigation = (event, item) => {
-    event.preventDefault();
-    setActive(item.label);
-    navigate(item.link);
+  // Check if link is active
+  const isActive = (path) => {
+    return location.pathname === path;
   };
 
-  const links = data.map((item) => (
-    <a
-      className={classes.link}
-      data-active={item.label === active || undefined}
-      href={item.link}
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (!user || !user.email) return '?';
+    return user.email.substring(0, 2).toUpperCase();
+  };
+
+  // Mobile navbar links
+  const mobileNavItems = navItems.map((item) => (
+    <Link
+      to={item.link}
       key={item.label}
-      onClick={(event) => handleNavigation(event, item)}
+      className={classes.mobileNavLink}
+      data-active={isActive(item.link) || undefined}
+      onClick={close}
+    >
+      <item.icon className={classes.mobileNavIcon} stroke={1.5} />
+      <span>{item.label}</span>
+      {item.soon && <Badge size="xs" color="blue">Soon</Badge>}
+    </Link>
+  ));
+
+  // Desktop navbar links
+  const links = navItems.map((item) => (
+    <Link
+      className={classes.link}
+      data-active={isActive(item.link) || undefined}
+      to={item.link}
+      key={item.label}
     >
       <item.icon className={classes.linkIcon} stroke={1.5} />
       <span>{item.label}</span>
-    </a>
+    </Link>
   ));
 
   return (
-    <nav className={classes.navbar}>
-      <div className={classes.navbarMain}>
-        <Group className={classes.header} justify="space-between">
-          <Text className='text-white text-pretty mx-3' >LNMDoubts</Text>
-          {/* <MantineLogo size={28} inverted style={{ color: 'white' }} /> */}
-          <Code fw={700} className={classes.version}>
-            v0.1.0
-          </Code>
+    <>
+      {/* Mobile navbar */}
+      <header className={classes.mobileHeader}>
+        <Group justify="space-between" h="100%" px="md">
+          <Group>
+            <Burger 
+              opened={opened} 
+              onClick={toggle} 
+              size="sm" 
+              color="var(--mantine-color-white)"
+              className={classes.burger}
+            />
+            <Text 
+              size="xl" 
+              fw={700}
+              
+            >
+              LNMDoubts
+            </Text>
+          </Group>
+          
+          <Group>
+            <ActionIcon 
+              variant="subtle" 
+              color="gray" 
+              onClick={() => toggleColorScheme()}
+              className={classes.actionIcon}
+            >
+              {dark ? <IconSun size="1.1rem" /> : <IconMoon size="1.1rem" />}
+            </ActionIcon>
+            
+            <ActionIcon variant="subtle" color="gray" className={classes.actionIcon}>
+              <IconSearch size="1.1rem" />
+            </ActionIcon>
+            
+            <Tooltip label="Notifications" position="bottom" withArrow>
+              <ActionIcon variant="subtle" color="gray" className={classes.actionIcon}>
+                <IconBell size="1.1rem" />
+              </ActionIcon>
+            </Tooltip>
+            
+            <Menu
+              width={200}
+              position="bottom-end"
+              transitionProps={{ transition: 'pop-top-right' }}
+              onClose={() => setUserMenuOpened(false)}
+              onOpen={() => setUserMenuOpened(true)}
+              withinPortal
+            >
+              <Menu.Target>
+                <UnstyledButton
+                  className={classes.user}
+                >
+                  <Avatar 
+                    radius="xl" 
+                    size={30} 
+                    color="indigo"
+                  >
+                    {getUserInitials()}
+                  </Avatar>
+                </UnstyledButton>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Item
+                  leftSection={<IconUser style={{ width: rem(14), height: rem(14) }} />}
+                  component={Link}
+                  to="/profile"
+                >
+                  Profile
+                </Menu.Item>
+                <Menu.Divider />
+                <Menu.Item
+                  leftSection={<IconLogout style={{ width: rem(14), height: rem(14) }} />}
+                  onClick={handleLogout}
+                >
+                  Logout
+                </Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
+          </Group>
         </Group>
-        {links}
-      </div>
+      </header>
 
-      <div className={classes.footer}>
-        {user && (
-          <Text size="sm" c="white" mb="md">
-            Signed in as: {user.email}
+      {/* Mobile drawer */}
+      <Drawer
+        opened={opened}
+        onClose={close}
+        size="xs"
+        padding="md"
+        title={
+          <Text 
+            fw={700} 
+            
+          >
+            LNMDoubts
           </Text>
-        )}
-        <a href="#" className={classes.link} onClick={handleLogout}>
-          <IconLogout className={classes.linkIcon} stroke={1.5} />
-          <span>Logout</span>
-        </a>
-      </div>
-    </nav>
+        }
+        className={classes.mobileDrawer}
+        overlayProps={{ color: 'var(--bg-dark)', backgroundOpacity: 0.55, blur: 3 }}
+      >
+        <ScrollArea h={`calc(100vh - ${rem(60)})`} mx="-md">
+          <Divider my="sm" />
+          
+          {isAuthenticated ? (
+            <>
+              <Group p="md" mb="md">
+                <Avatar radius="xl" size="md" color="indigo">{getUserInitials()}</Avatar>
+                <div>
+                  <Text fw={500} size="sm">{user?.email}</Text>
+                  <Text c="dimmed" size="xs">LNMIIT Student</Text>
+                </div>
+              </Group>
+              <Divider my="sm" />
+              <Stack p="md" gap="xs">
+                {mobileNavItems}
+              </Stack>
+              <Divider my="sm" />
+              <Group p="md" grow>
+                <Button
+                  onClick={handleLogout}
+                  leftSection={<IconLogout size="1rem" />}
+                  variant="light"
+                >
+                  Logout
+                </Button>
+              </Group>
+            </>
+          ) : (
+            <Group p="md" grow>
+              <Button
+                onClick={() => {
+                  navigate('/login');
+                  close();
+                }}
+                
+              >
+                Sign in
+              </Button>
+            </Group>
+          )}
+        </ScrollArea>
+      </Drawer>
+
+      {/* Desktop navbar */}
+      <nav className={classes.navbar}>
+        <div className={classes.navbarMain}>
+          <Group className={classes.header} justify="space-between">
+            <Text 
+              size="xl" 
+              fw={700}
+              
+            >
+              LNMDoubts
+            </Text>
+            <Text 
+              size="xs" 
+              fw={500} 
+              className={classes.version}
+              px={6} 
+              py={3} 
+              radius="sm"
+            >
+              v1.0
+            </Text>
+          </Group>
+          {links}
+        </div>
+
+        <div className={classes.footer}>
+          <UnstyledButton className={classes.link} onClick={handleLogout}>
+            <IconLogout className={classes.linkIcon} stroke={1.5} />
+            <span>Logout</span>
+          </UnstyledButton>
+        </div>
+      </nav>
+    </>
   );
 }
