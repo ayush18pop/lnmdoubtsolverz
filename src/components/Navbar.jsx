@@ -26,15 +26,15 @@ import { logoutUser } from '../store/authSlice';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const data = [
-  { link: '/', label: 'Home', icon: IconHome },
+  // { link: '/', label: 'Home', icon: IconHome },
   { link: '/feed', label: 'Doubt Feed', icon: IconBrandFeedly },
   { link: '/postdoubt', label: 'Post Your Doubt', icon: IconUpload },
   
-  { link: '/upcomingbt', label: 'Upcoming BTs', icon: IconAlertHexagon },
-  { link: '/resources', label: 'Resources', icon: IconBook },
-  { link: '/profile', label: 'Profile', icon: IconUser },
+  // { link: '/upcomingbt', label: 'Upcoming BTs', icon: IconAlertHexagon },
+  // { link: '/resources', label: 'Resources', icon: IconBook },
+  // { link: '/profile', label: 'Profile', icon: IconUser },
   
-  { link: '', label: 'Other Settings', icon: IconSettings },
+  // { link: '', label: 'Other Settings', icon: IconSettings },
 ];
 
 export default function Navbar() {
@@ -88,9 +88,10 @@ export default function Navbar() {
     <nav className={classes.navbar}>
       <div className={classes.navbarMain}>
         <Group className={classes.header} justify="space-between">
-          <MantineLogo size={28} inverted style={{ color: 'white' }} />
+          <Text className='text-white' >OnlyDoubts</Text>
+          {/* <MantineLogo size={28} inverted style={{ color: 'white' }} /> */}
           <Code fw={700} className={classes.version}>
-            v3.1.2
+            v0.1.0
           </Code>
         </Group>
         {links}

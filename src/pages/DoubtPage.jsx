@@ -439,7 +439,7 @@ const uploadImage = async (file) => {
               <>
                 {/* Back Button */}
                 <Link to="/feed" style={{ textDecoration: 'none', display: 'inline-block', marginBottom: '16px' }}>
-                  <Group spacing="xs">
+                  <Group spacing="xs" >
                     <IconArrowBack size={16} />
                     <Text size="sm" color="dimmed">Back to all doubts</Text>
                   </Group>
@@ -481,7 +481,7 @@ const uploadImage = async (file) => {
                     {doubt.title}
                   </Title>
                   
-                  <Text size="md" style={{ whiteSpace: 'pre-wrap', marginBottom: '20px', lineHeight: 1.6 }}>
+                  <Text size="md" color='white' style={{ whiteSpace: 'pre-wrap', marginBottom: '20px', lineHeight: 1.6 }}>
                     {doubt.description}
                   </Text>
                   
@@ -722,7 +722,7 @@ const uploadImage = async (file) => {
                         ))
                       ) : (
                         <Card shadow="sm" radius="md" withBorder p="md" style={{ backgroundColor: '#25262B', textAlign: 'center' }}>
-                          <Text size="md" mb="md">No comments yet</Text>
+                          <Text color='white' size="md" mb="md">No comments yet</Text>
                           <Button 
                             variant="light" 
                             color="violet" 
