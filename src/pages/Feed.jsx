@@ -59,6 +59,10 @@ import Navbar from '../components/Navbar';
 import { formatDistanceToNow } from 'date-fns';
 import { useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
+import { Navigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
+
 
 // Define styles using CSS classes instead of createStyles
 // You'll need to have these classes in your Feed.module.css file
@@ -72,7 +76,7 @@ export default function Feed() {
   const { user } = useSelector(state => state.auth);
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [filtersOpened, { toggle: toggleFilters }] = useDisclosure(false);
-
+  const navigate = useNavigate();
   // Define inline styles since createStyles is not available
   const styles = {
     appContainer: {
@@ -369,7 +373,7 @@ export default function Feed() {
 
   // Get unique categories for tabs
   const categories = ['all', ...new Set(doubts.map(doubt => doubt.category?.toLowerCase()).filter(Boolean))];
-
+  const { doubtId } = useParams(); 
   return (
     // Wrap the entire app in MantineProvider with dark theme to ensure consistent colors
     <MantineProvider theme={{ colorScheme: 'dark' }}>
@@ -554,6 +558,7 @@ export default function Feed() {
                           <UnstyledButton 
                             style={styles.wrapper}
                             component="div"
+                            onClick={()=> navigate(`/feed/${doubt.id}`)}
                           >
                             <div>
                               <Text 

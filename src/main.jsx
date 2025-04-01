@@ -13,6 +13,7 @@ import { useSelector } from 'react-redux'
 import Feed from './pages/Feed.jsx'
 import PostDoubt from './pages/PostDoubt.jsx'
 import Profile from './pages/Profile.jsx'
+import DoubtPage from './pages/DoubtPage.jsx'
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -76,6 +77,14 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: "/feed/:id", 
+        element: (
+          <ProtectedRoute>
+            <DoubtPage/>
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: "/postdoubt",
         element: (
           <ProtectedRoute>
@@ -83,6 +92,7 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      
       {
         path: "/profile",
         element: (
