@@ -670,8 +670,11 @@ export default function Feed() {
                                 style={styles.commentButton}
                                 radius="xl"
                               >
-                                {doubt.commentCount || 0} Comments
+                                
+                                {
+                                doubt.commentCount || 0} Comments
                               </Button>
+                              {console.log(doubt.commentCount)}
                             </Group>
                           </Flex>
                         </Card>

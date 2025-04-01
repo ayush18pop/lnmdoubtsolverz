@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { arrayUnion, arrayRemove, updateDoc,increment  } from 'firebase/firestore';
+
 import {
   MantineProvider,
   Container,
@@ -130,6 +132,7 @@ function DoubtPage() {
   const handlePostComment = async () => {
     if (!newComment.trim()) return; // ignore empty comments
     try {
+        const doubtRef = doc(db, 'doubts', id);
       const commentsRef = collection(db, 'doubts', id, 'comments');
       await addDoc(commentsRef, {
         text: newComment,
@@ -139,6 +142,9 @@ function DoubtPage() {
         timestamp: serverTimestamp(),
       });
       setNewComment('');
+      await updateDoc(doubtRef, {
+        commentCount: increment(1)
+      });
       fetchComments(); // refresh comments list after posting
     } catch (err) {
       console.error('Error posting comment: ', err);
@@ -151,8 +157,93 @@ function DoubtPage() {
   };
 
   // Dummy handlers for vote, share, and save. Replace with your actual implementations.
-  const handleVote = (type) => {
-    console.log(`Vote: ${type} for doubt id ${doubt.id}`);
+  const handleVote = async (voteType) => {
+    if (!user) {
+      notifications.show({
+        title: 'Authentication required',
+        message: 'Please log in to vote on doubts',
+        color: 'blue',
+      });
+      return;
+    }
+  
+    try {
+      const doubtRef = doc(db, 'doubts', id);
+      const currentUpvoted = doubt.upvotedBy || [];
+      const currentDownvoted = doubt.downvotedBy || [];
+      let newUpvoted = [...currentUpvoted];
+      let newDownvoted = [...currentDownvoted];
+      let newTotalVotes = doubt.totalVotes || 0;
+  
+      if (voteType === 'up') {
+        const hasUpvoted = currentUpvoted.includes(user.uid);
+        const hasDownvoted = currentDownvoted.includes(user.uid);
+  
+        if (hasUpvoted) {
+          // Remove upvote
+          newUpvoted = currentUpvoted.filter(uid => uid !== user.uid);
+          newTotalVotes -= 1;
+        } else {
+          // Add upvote and remove downvote if exists
+          newUpvoted = [...currentUpvoted, user.uid];
+          if (hasDownvoted) {
+            newDownvoted = currentDownvoted.filter(uid => uid !== user.uid);
+            newTotalVotes += 2; // Removing a downvote (+1) and adding an upvote (+1)
+          } else {
+            newTotalVotes += 1;
+          }
+        }
+      } else if (voteType === 'down') {
+        const hasDownvoted = currentDownvoted.includes(user.uid);
+        const hasUpvoted = currentUpvoted.includes(user.uid);
+  
+        if (hasDownvoted) {
+          // Remove downvote
+          newDownvoted = currentDownvoted.filter(uid => uid !== user.uid);
+          newTotalVotes += 1;
+        } else {
+          // Add downvote and remove upvote if exists
+          newDownvoted = [...currentDownvoted, user.uid];
+          if (hasUpvoted) {
+            newUpvoted = currentUpvoted.filter(uid => uid !== user.uid);
+            newTotalVotes -= 2; // Removing an upvote (-1) and adding a downvote (-1)
+          } else {
+            newTotalVotes -= 1;
+          }
+        }
+      }
+  
+      // Update the doubt document in Firestore
+      await updateDoc(doubtRef, {
+        upvotedBy: newUpvoted,
+        downvotedBy: newDownvoted,
+        totalVotes: newTotalVotes,
+      });
+  
+      // Update local state with new values
+      setDoubt({
+        ...doubt,
+        upvotedBy: newUpvoted,
+        downvotedBy: newDownvoted,
+        totalVotes: newTotalVotes,
+      });
+  
+      notifications.show({
+        title: 'Success',
+        message: voteType === 'up'
+          ? (currentUpvoted.includes(user.uid) ? 'Upvote removed' : 'Doubt upvoted')
+          : (currentDownvoted.includes(user.uid) ? 'Downvote removed' : 'Doubt downvoted'),
+        color: 'green',
+        autoClose: 2000,
+      });
+    } catch (error) {
+      console.error('Error updating votes:', error);
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to update vote. Please try again.',
+        color: 'red',
+      });
+    }
   };
 
   const handleShare = () => {
