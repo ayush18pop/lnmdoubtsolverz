@@ -88,7 +88,7 @@ export default function Navbar() {
     <nav className={classes.navbar}>
       <div className={classes.navbarMain}>
         <Group className={classes.header} justify="space-between">
-          <Text className='text-white' >OnlyDoubts</Text>
+          <Text className='text-white text-pretty mx-3' >LNMDoubts</Text>
           {/* <MantineLogo size={28} inverted style={{ color: 'white' }} /> */}
           <Code fw={700} className={classes.version}>
             v0.1.0
