@@ -45,7 +45,11 @@ import {
   IconFilter,
   IconHeart,
   IconHeartFilled,
-  IconBrandReddit
+  IconBrandReddit,
+  IconBrandAbstract,
+  IconPackages,
+  IconFileAi,
+  IconFileChart
 } from '@tabler/icons-react';
 import { collection, query, orderBy, getDocs, updateDoc, doc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
@@ -387,7 +391,7 @@ export default function Feed() {
                 <Title order={2} size="h3" c="gray.0" fw={700}>
                   <Group gap={8}>
                     <ThemeIcon variant="light" size="lg" radius="xl" color="violet.7">
-                      <IconBrandReddit style={{ width: rem(18), height: rem(18) }} />
+                      <IconFileChart style={{ width: rem(18), height: rem(18) }} />
                     </ThemeIcon>
                     <Text span>Doubts Feed</Text>
                   </Group>
@@ -643,7 +647,7 @@ export default function Feed() {
                             </Group>
 
                             <Group>
-                              <ActionIcon
+                              {/* <ActionIcon
                                 variant="subtle"
                                 color="violet"
                                 radius="xl"
@@ -651,7 +655,7 @@ export default function Feed() {
                                 onClick={() => handleSavePost(doubt)}
                               >
                                 <IconHeart style={{ width: rem(18), height: rem(18) }} />
-                              </ActionIcon>
+                              </ActionIcon> */}
 
                               <Button 
                                 variant="light"
