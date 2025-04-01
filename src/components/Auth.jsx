@@ -204,7 +204,7 @@ export function Auth() {
       {/* Hero Section */}
       <div className={classes.hero}>
         <Container size="xl">
-          <SimpleGrid cols={{ base: 1, md: 2 }} spacing={50}>
+          {/* <SimpleGrid cols={{ base: 1, md: 2 }} spacing={50}> */}
             <div className={classes.heroContent}>
               <Title className={classes.title}>Welcome to LNMDoubts</Title>
               <Text className={classes.subtitle}>
@@ -243,7 +243,7 @@ export function Auth() {
                 className={classes.mainImage}
               />
             </div> */}
-          </SimpleGrid>
+          {/* </SimpleGrid> */}
         </Container>
       </div>
 
