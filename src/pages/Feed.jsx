@@ -521,10 +521,10 @@ export default function Feed() {
                                   </Avatar>
                                 </Indicator>
                                 <div>
-                                  <Text size="sm" fw={600} c="gray.0">
+                                  <Text className='flex-1 flex items-start' size="sm" fw={600} c="gray.0">
                                     {doubt.isAnonymous ? 'Anonymous' : doubt.email}
                                   </Text>
-                                  <Text size="xs" c="gray.5">
+                                  <Text className='flex-1 flex items-start' size="xs" c="gray.5">
                                     {doubt.createdAt ? formatDistanceToNow(doubt.createdAt, { addSuffix: true }) : 'Recently'}
                                   </Text>
                                 </div>

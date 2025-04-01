@@ -438,7 +438,7 @@ const uploadImage = async (file) => {
             ) : doubt ? (
               <>
                 {/* Back Button */}
-                <Link to="/feed" style={{ textDecoration: 'none', display: 'inline-block', marginBottom: '16px' }}>
+                <Link  to="/feed" style={{ textDecoration: 'none', display: 'inline-block', marginBottom: '16px' }}>
                   <Group spacing="xs" >
                     <IconArrowBack size={16} />
                     <Text size="sm" color="dimmed">Back to all doubts</Text>
@@ -477,11 +477,11 @@ const uploadImage = async (file) => {
                   </Group>
                   
                   {/* Doubt Title and Content */}
-                  <Title order={2} style={{ color: '#F8F9FA', fontWeight: 700, marginBottom: '16px' }}>
+                  <Title className='flex-1 flex items-start' order={2} style={{ color: '#F8F9FA', fontWeight: 700, marginBottom: '16px' }}>
                     {doubt.title}
                   </Title>
                   
-                  <Text size="md" color='white' style={{ whiteSpace: 'pre-wrap', marginBottom: '20px', lineHeight: 1.6 }}>
+                  <Text className='flex-1 flex items-start' size="md" color='white' style={{ whiteSpace: 'pre-wrap', marginBottom: '20px', lineHeight: 1.6 }}>
                     {doubt.description}
                   </Text>
                   
