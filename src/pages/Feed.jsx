@@ -703,6 +703,7 @@ export default function Feed() {
                   color="violet.7" 
                   leftSection={<IconMessage size={14} />}
                   radius="xl"
+                  onClick={()=> {navigate('/postdoubt')}}
                 >
                   Create a doubt
                 </Button>
