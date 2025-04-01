@@ -44,6 +44,7 @@ export default function Navbar() {
   const { user, isAuthenticated } = useSelector(state => state.auth);
   const [active, setActive] = useState(() => {
     const path = location.pathname;
+    if (path.startsWith('/feed')) return 'Doubt Feed'; 
     const activeItem = data.find(item => item.link === path);
     return activeItem ? activeItem.label : 'Home';
   });
