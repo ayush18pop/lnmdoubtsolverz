@@ -34,7 +34,7 @@ export function Auth() {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/');
+      navigate('/feed');
     }
   }, [isAuthenticated, navigate]);
 
@@ -91,7 +91,7 @@ export function Auth() {
         <form onSubmit={handleLogin}>
           <TextInput
             label="Email"
-            placeholder="23ucs666@lnmiit.ac.in"
+            placeholder="23ucsXXX@lnmiit.ac.in"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required

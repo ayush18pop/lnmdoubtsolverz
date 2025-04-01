@@ -12,7 +12,7 @@ import { signupUser } from "../store/authSlice"; // Import register function
 import { useDispatch, useSelector } from "react-redux";
 import classes from "./AuthPage.module.css";
 import { validateLNMIITEmail } from "../utils/validation";
-
+import { useNavigate } from "react-router-dom";
 export default function AuthRegister() {
   const dispatch = useDispatch();
   const [email, setEmail] = useState("");
@@ -20,7 +20,7 @@ export default function AuthRegister() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const { loading, error: authError } = useSelector((state) => state.auth);
-
+  const navigate = useNavigate(); 
   const validateForm = () => {
     setError("");
 
@@ -48,11 +48,16 @@ export default function AuthRegister() {
 
     return true;
   };
-
+  useEffect(() => {
+    if (user) {
+      navigate("/feed");
+    }
+  }, [user, navigate]);
   const handleRegister = () => {
     setError("");
     if (validateForm()) {
       dispatch(signupUser({ email, password }));
+      
     }
   };
 
