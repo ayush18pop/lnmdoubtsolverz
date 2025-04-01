@@ -14,6 +14,7 @@ import Feed from './pages/Feed.jsx'
 import PostDoubt from './pages/PostDoubt.jsx'
 import Profile from './pages/Profile.jsx'
 import DoubtPage from './pages/DoubtPage.jsx'
+import Resources from './pages/Resources.jsx'
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -101,6 +102,14 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
     },
+    {
+      path: "/resources",
+      element: (
+        <ProtectedRoute>
+          <Resources />
+        </ProtectedRoute>
+      ),
+  },
       {
         path: "*",
         element: <AuthStateRedirect />

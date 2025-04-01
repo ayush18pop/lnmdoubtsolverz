@@ -129,14 +129,14 @@ export default function Navbar() {
           </Group>
           
           <Group>
-            <ActionIcon 
+            {/* <ActionIcon 
               variant="subtle" 
               color="gray" 
               onClick={() => toggleColorScheme()}
               className={classes.actionIcon}
             >
               {dark ? <IconSun size="1.1rem" /> : <IconMoon size="1.1rem" />}
-            </ActionIcon>
+            </ActionIcon> */}
             
             <ActionIcon variant="subtle" color="gray" className={classes.actionIcon}>
               <IconSearch size="1.1rem" />
