@@ -425,10 +425,12 @@ const uploadImage = async (file) => {
 
   return (
     <MantineProvider theme={{ colorScheme: 'dark' }}>
-      <div style={{ backgroundColor: '#1A1B1E', minHeight: '100vh', color: '#C1C2C5' }}>
+      
+      <div  style={{ backgroundColor: '#1A1B1E', minHeight: '100vh', color: '#C1C2C5' }}>
         <div >
           <Navbar />
         </div>
+        
         <div className='flex-1 md:ml-[250px] p-4'>
           <Container size="lg" p="md" >
             {loading && !doubt ? (
@@ -752,7 +754,8 @@ const uploadImage = async (file) => {
             )}
           </Container>
         </div>
-      </div>
+        </div>
+      
     </MantineProvider>
   );
 }
