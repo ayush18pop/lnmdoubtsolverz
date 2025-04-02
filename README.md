@@ -20,8 +20,8 @@ LNMDoubts is a student-driven platform designed to help students at LNM Institut
 ### Installation
 1. Clone the repository:
    ```sh
-   git clone https://github.com/your-username/LNMDoubts.git
-   cd LNMDoubts
+   git clone https://github.com/ayush18pop/lnmdoubtsolverz.git
+   cd lnmdoubtsolverz
    ```
 2. Install dependencies:
    ```sh
