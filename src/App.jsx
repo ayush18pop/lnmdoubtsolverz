@@ -61,7 +61,7 @@ function App() {
   return (
     <MantineProvider theme={theme}>
       
-      <div className="min-h-screen ">
+      <div >
         <Outlet />
       </div>
     </MantineProvider>

@@ -1,3 +1,5 @@
+import { motion } from "motion/react";
+
 import {
   Button,
   Paper,
@@ -55,6 +57,7 @@ import { useDispatch, useSelector } from "react-redux";
 import classes from "./AuthPage.module.css";
 import { useNavigate } from "react-router-dom";
 import { validateLNMIITEmail } from "../utils/validation";
+import { AuroraBackground } from "./ui/aurora-background";
 
 export function Auth() {
   const dispatch = useDispatch();
@@ -200,6 +203,19 @@ export function Auth() {
   ];
 
   return (
+    <AuroraBackground >
+
+<motion.div
+        initial={{ opacity: 0.0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{
+          delay: 0.3,
+          duration: 0.8,
+          ease: "easeInOut",
+        }}
+        className="relative flex flex-col gap-4 items-center justify-center px-4"
+      >
+
     <div className={classes.landingWrapper} style={{ opacity: isVisible ? 1 : 0, transition: 'opacity 0.8s ease-out' }}>
       {/* Hero Section */}
       <div className={classes.hero}>
@@ -273,8 +289,8 @@ export function Auth() {
 
       {/* How It Works Section */}
       <Container size="lg" className={classes.howItWorksSection}>
-        <Title order={2} className={classes.sectionTitle} ta="center">
-          How It Works
+        <Title order={2} className={classes.sectionTitle} ta="center" >
+          <div className="flex-1 flex items-center">How It Works</div>
         </Title>
         <SimpleGrid cols={{ base: 1, md: 3 }} spacing={30}>
           <div className={classes.stepCard}>
@@ -522,5 +538,7 @@ export function Auth() {
         </Tabs>
       </Modal>
     </div>
+    </motion.div>
+    </AuroraBackground>
   );
 }

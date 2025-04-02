@@ -429,8 +429,8 @@ const uploadImage = async (file) => {
         <div >
           <Navbar />
         </div>
-        <div className='flex-1 md:ml-[300px] p-4'>
-          <Container size="lg" p="md">
+        <div className='flex-1 md:ml-[250px] p-4'>
+          <Container size="lg" p="md" >
             {loading && !doubt ? (
               <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
                 <Loader size="xl" variant="dots" color="violet" />

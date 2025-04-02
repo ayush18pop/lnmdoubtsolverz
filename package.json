@@ -17,12 +17,15 @@
     "@mantinex/mantine-logo": "^1.1.0",
     "@reduxjs/toolkit": "^2.6.1",
     "@tabler/icons-react": "^3.31.0",
+    "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "firebase": "^11.5.0",
+    "motion": "^12.6.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-redux": "^9.2.0",
-    "react-router-dom": "^7.4.1"
+    "react-router-dom": "^7.4.1",
+    "tailwind-merge": "^3.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",

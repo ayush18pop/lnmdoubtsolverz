@@ -230,7 +230,6 @@
 .howItWorksSection {
   padding: 80px 0;
   position: relative;
-  background: linear-gradient(to bottom, var(--bg-dark), var(--bg-card), var(--bg-dark));
 }
 
 .stepCard {

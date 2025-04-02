@@ -105,7 +105,6 @@ export default function Navbar() {
       <span>{item.label}</span>
     </Link>
   ));
-
   return (
     <>
       {/* Mobile navbar */}

@@ -674,7 +674,7 @@ export default function Feed() {
                                 {
                                 doubt.commentCount || 0} Comments
                               </Button>
-                              {console.log(doubt.commentCount)}
+                              {/* {console.log(doubt.commentCount)} */}
                             </Group>
                           </Flex>
                         </Card>

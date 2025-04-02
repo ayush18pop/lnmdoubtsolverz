@@ -15,6 +15,7 @@ import PostDoubt from './pages/PostDoubt.jsx'
 import Profile from './pages/Profile.jsx'
 import DoubtPage from './pages/DoubtPage.jsx'
 import Resources from './pages/Resources.jsx'
+import { AuroraBackground } from './components/ui/aurora-background.jsx'
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -128,6 +129,7 @@ function AuthStateRedirect() {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Provider store={store}>
+      
       <RouterProvider router={router}/>
     </Provider>
   </StrictMode>,
