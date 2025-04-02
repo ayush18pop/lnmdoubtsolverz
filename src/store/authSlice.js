@@ -1,8 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { auth } from "../firebase/firebase";
+import { auth, googleProvider } from "../firebase/firebase";
 import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
+  signInWithPopup,
   signOut,
 } from "firebase/auth";
 
@@ -19,84 +18,52 @@ const loadAuthState = () => {
   }
 };
 
-export const signupUser = createAsyncThunk(
-  "auth/signupUser",
-  async ({ email, password }, thunkAPI) => {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      console.log("signup done, user signed up");
-      // After successful signup, automatically log in
-      return userCredential.user;
-    } catch (error) {
-      // Convert Firebase error codes to user-friendly messages
-      let errorMessage;
-      switch (error.code) {
-        case "auth/email-already-in-use":
-          errorMessage =
-            "This email is already registered. Please login instead.";
-          break;
-        case "auth/invalid-email":
-          errorMessage = "Invalid email address";
-          break;
-        case "auth/operation-not-allowed":
-          errorMessage = "Email/password accounts are not enabled";
-          break;
-        case "auth/weak-password":
-          errorMessage =
-            "Password is too weak. It must be at least 6 characters";
-          break;
-        default:
-          errorMessage = error.message;
-      }
-      console.error("Signup error:", error);
-      return thunkAPI.rejectWithValue(errorMessage);
-    }
-  }
-);
+// Helper function to validate LNMIIT email domain
+const isLNMIITEmail = (email) => {
+  return email && email.endsWith('@lnmiit.ac.in');
+};
 
-export const loginUser = createAsyncThunk(
-  "auth/loginUser",
-  async ({ email, password }, thunkAPI) => {
+// Save auth state to localStorage
+const saveAuthState = (state) => {
+  try {
+    const serializedState = JSON.stringify({
+      user: state.user,
+      isAuthenticated: state.isAuthenticated,
+      error: state.error,
+    });
+    localStorage.setItem("authState", serializedState);
+  } catch (err) {
+    console.error("Could not save auth state:", err);
+  }
+};
+
+export const loginWithGoogle = createAsyncThunk(
+  "auth/loginWithGoogle",
+  async (_, thunkAPI) => {
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      console.log("signin done, user signed in");
-      return userCredential.user;
-    } catch (error) {
-      // Convert Firebase error codes to user-friendly messages
-      let errorMessage;
-      switch (error.code) {
-        case "auth/invalid-credential":
-          errorMessage =
-            "Invalid email or password. Please check your credentials and try again.";
-          break;
-        case "auth/user-not-found":
-          errorMessage =
-            "No account found with this email. Please register first.";
-          break;
-        case "auth/wrong-password":
-          errorMessage = "Incorrect password. Please try again.";
-          break;
-        case "auth/invalid-email":
-          errorMessage = "Invalid email address format";
-          break;
-        case "auth/user-disabled":
-          errorMessage = "This account has been disabled";
-          break;
-        case "auth/too-many-requests":
-          errorMessage = "Too many failed attempts. Please try again later";
-          break;
-        default:
-          errorMessage = error.message;
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      
+      // Check if the email is from LNMIIT domain
+      if (!isLNMIITEmail(user.email)) {
+        await signOut(auth); // Sign out if not LNMIIT email
+        return thunkAPI.rejectWithValue("Only LNMIIT email addresses (@lnmiit.ac.in) are allowed to login.");
       }
-      console.error("Login error:", error);
+      
+      console.log("Google sign-in successful");
+      return user;
+    } catch (error) {
+      let errorMessage;
+      
+      if (error.code === "auth/popup-closed-by-user") {
+        errorMessage = "Login canceled. Please try again.";
+      } else if (error.code === "auth/popup-blocked") {
+        errorMessage = "Login popup was blocked. Please allow popups for this site.";
+      } else {
+        errorMessage = error.message;
+      }
+      
+      console.error("Google login error:", error);
       return thunkAPI.rejectWithValue(errorMessage);
     }
   }
@@ -134,31 +101,18 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(signupUser.pending, (state) => {
+      .addCase(loginWithGoogle.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(signupUser.fulfilled, (state, action) => {
+      .addCase(loginWithGoogle.fulfilled, (state, action) => {
         state.user = action.payload;
         state.isAuthenticated = true;
         state.loading = false;
         state.error = null;
+        saveAuthState(state);
       })
-      .addCase(signupUser.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      .addCase(loginUser.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(loginUser.fulfilled, (state, action) => {
-        state.user = action.payload;
-        state.isAuthenticated = true;
-        state.loading = false;
-        state.error = null;
-      })
-      .addCase(loginUser.rejected, (state, action) => {
+      .addCase(loginWithGoogle.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

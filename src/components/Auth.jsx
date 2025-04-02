@@ -3,12 +3,8 @@ import { motion } from "motion/react";
 import {
   Button,
   Paper,
-  PasswordInput,
   Text,
-  TextInput,
   Title,
-  Tabs,
-  rem,
   Container,
   Box,
   Flex,
@@ -29,10 +25,10 @@ import {
   Center,
   ScrollArea,
   Switch,
+  rem,
+  Tabs
 } from "@mantine/core";
 import { 
-  IconLock, 
-  IconMail, 
   IconCheck, 
   IconArrowRight, 
   IconBrandGithub,
@@ -57,23 +53,17 @@ import {
   IconMessageCircle
 } from '@tabler/icons-react';
 import { useState, useEffect } from "react";
-import { loginUser, signupUser, clearError } from "../store/authSlice";
+import { loginWithGoogle, clearError } from "../store/authSlice";
 import { useDisclosure } from '@mantine/hooks';
 import { useDispatch, useSelector } from "react-redux";
 import classes from "./AuthPage.module.css";
 import { useNavigate } from "react-router-dom";
-import { validateLNMIITEmail } from "../utils/validation";
 import { AuroraBackground } from "./ui/aurora-background";
 
 export function Auth() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('login');
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
   const [formError, setFormError] = useState("");
   const [opened, { open, close }] = useDisclosure(false);
   const { loading, error: authError, isAuthenticated } = useSelector((state) => state.auth);
@@ -100,59 +90,15 @@ export function Auth() {
     }
   }, [isAuthenticated, navigate]);
 
-  const validateForm = () => {
-    setFormError("");
-    
-    const emailValidation = validateLNMIITEmail(formData.email);
-    if (!emailValidation.isValid) {
-      setFormError(emailValidation.message);
-      return false;
-    }
-
-    if (!formData.email || !formData.password) {
-      setFormError("All fields are required");
-      return false;
-    }
-
-    if (formData.password.length < 6) {
-      setFormError("Password needs at least 6 chars");
-      return false;
-    }
-
-    if (activeTab === 'register' && formData.password !== formData.confirmPassword) {
-      setFormError("Passwords don't match");
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleGoogleLogin = async () => {
     setFormError("");
     dispatch(clearError());
     
-    if (validateForm()) {
-      try {
-        if (activeTab === 'login') {
-          await dispatch(loginUser({ 
-            email: formData.email, 
-            password: formData.password 
-          })).unwrap();
-        } else {
-          await dispatch(signupUser({ 
-            email: formData.email, 
-            password: formData.password 
-          })).unwrap();
-        }
-      } catch (err) {
-        console.error('Authentication failed:', err);
-      }
+    try {
+      await dispatch(loginWithGoogle()).unwrap();
+    } catch (err) {
+      console.error('Google authentication failed:', err);
     }
-  };
-
-  const handleInputChange = (field) => (e) => {
-    setFormData({ ...formData, [field]: e.target.value });
   };
 
   const iconStyle = { width: rem(18), height: rem(18) };
@@ -328,6 +274,7 @@ export function Auth() {
             </Container>
           </div>
 
+
           {/* How It Works Section */}
           <Container size="lg" className={classes.howItWorksSection}>
             <Title order={2} className={classes.sectionTitle} ta="center">
@@ -396,12 +343,11 @@ export function Auth() {
               viewport={{ once: true }}
             >
               <Card 
-  radius="lg" 
-  className={classes.spotlightCard} 
-  shadow="md" 
-  style={{ backgroundColor: 'var(--bg-dark)', borderColor: 'rgba(123, 93, 249, 0.3)' }}
->
-
+                radius="lg" 
+                className={classes.spotlightCard} 
+                shadow="md" 
+                style={{ backgroundColor: 'var(--bg-dark)', borderColor: 'rgba(123, 93, 249, 0.3)' }}
+              >
                 <SimpleGrid cols={{ base: 1, md: 2 }} spacing={30}>
                   <div className={classes.spotlightContent}>
                     <Badge 
@@ -446,12 +392,12 @@ export function Auth() {
                   </div>
                   
                   <div className={classes.anonymousDemoWrapper}>
-                  <Paper 
-  radius="md" 
-  p="md" 
-  className={classes.anonymousDemo} 
-  style={{ backgroundColor: 'var(--bg-card)', border: '1px solid rgba(123, 93, 249, 0.3)' }}
->
+                    <Paper 
+                      radius="md" 
+                      p="md" 
+                      className={classes.anonymousDemo} 
+                      style={{ backgroundColor: 'var(--bg-card)', border: '1px solid rgba(123, 93, 249, 0.3)' }}
+                    >
                       <Tabs value={activeDemoTab} onChange={setActiveDemoTab} radius="md" variant="pills" mb="md">
                         <Tabs.List grow>
                           <Tabs.Tab value="regular">Regular Post</Tabs.Tab>
@@ -478,24 +424,15 @@ export function Auth() {
                           </Group>
                         </Group>
                         
-                        <TextInput
-                          placeholder="What's your doubt about?"
-                          defaultValue={activeDemoTab === 'regular' ? 
-                            "Having trouble with linked list implementation" : 
-                            "Struggling with recursion concepts"
-                          }
-                          mb="md"
-                        />
-                        
                         <Box 
-  mb="md" 
-  p="sm" 
-  className={classes.demoEditor} 
-  style={{ backgroundColor: 'rgba(30, 30, 40, 0.5)', border: '1px solid rgba(123, 93, 249, 0.2)' }}
->
+                          mb="md" 
+                          p="sm" 
+                          className={classes.demoEditor} 
+                          style={{ backgroundColor: 'rgba(30, 30, 40, 0.5)', border: '1px solid rgba(123, 93, 249, 0.2)' }}
+                        >
                           <Text size="sm">
                             {activeDemoTab === 'regular' ? 
-                              "Can someone help me with inserting a node in a doubly linked list? My code keeps seg faulting." : 
+                              "Having trouble with linked list implementation. Can someone help me with inserting a node in a doubly linked list? My code keeps seg faulting." : 
                               "I'm finding it difficult to understand recursion. Can someone explain with a simple example? I'm too embarrassed to ask in class."
                             }
                           </Text>
@@ -536,6 +473,7 @@ export function Auth() {
               </Card>
             </motion.div>
           </Container>
+
 
           {/* Features Section */}
           <Container size="lg" className={classes.featuresSection}>
@@ -584,22 +522,22 @@ export function Auth() {
               See What Students Are Discussing
             </Title>
             <Paper 
-  radius="md" 
-  p={0} 
-  style={{ 
-    overflow: 'hidden', 
-    border: '1px solid rgba(123, 93, 249, 0.3)',
-    backgroundColor: 'var(--bg-dark)' 
-  }}
->
-<Box 
-  p="md" 
-  style={{ 
-    borderBottom: '1px solid rgba(123, 93, 249, 0.3)', 
-    background: 'var(--bg-card)',
-    color: 'var(--text-color)'
-  }}
->
+              radius="md" 
+              p={0} 
+              style={{ 
+                overflow: 'hidden', 
+                border: '1px solid rgba(123, 93, 249, 0.3)',
+                backgroundColor: 'var(--bg-dark)' 
+              }}
+            >
+              <Box 
+                p="md" 
+                style={{ 
+                  borderBottom: '1px solid rgba(123, 93, 249, 0.3)', 
+                  background: 'var(--bg-card)',
+                  color: 'var(--text-color)'
+                }}
+              >
                 <Group position="apart">
                   <Group>
                     <IconMessageDots size={20} style={{ color: 'var(--primary)' }} />
@@ -631,14 +569,14 @@ export function Auth() {
                       transition: { duration: 0.2 }
                     }}
                   >
-                   <Box 
-  p="md" 
-  mb="md" 
-  style={{ 
-    borderBottom: '1px solid rgba(123, 93, 249, 0.1)',
-    color: 'var(--text-color)'
-  }}
->
+                    <Box 
+                      p="md" 
+                      mb="md" 
+                      style={{ 
+                        borderBottom: '1px solid rgba(123, 93, 249, 0.1)',
+                        color: 'var(--text-color)'
+                      }}
+                    >
                       <Group position="apart" mb="xs">
                         <Group>
                           {post.isAnonymous ? (
@@ -703,56 +641,6 @@ export function Auth() {
             </Paper>
           </Container>
 
-          {/* Testimonials on Anonymous Feature
-          <Container size="lg" py={60}>
-            <Title order={2} className={classes.sectionTitle} ta="center" mb={30}>
-              What Students Are Saying
-            </Title>
-            <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing={20}>
-              <motion.div
-                whileHover={{ y: -5 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <Card p="xl" radius="md" className={classes.testimonialCard}>
-                  <Avatar size="lg" radius="xl" color="grape" className={classes.testimonialAvatar}>M</Avatar>
-                  <Text fw={600} mt="md">Maths Major</Text>
-                  <Text size="sm" c="dimmed" fz="xs">2nd Year</Text>
-                  <Text mt="md" fz="sm" className={classes.testimonialText}>
-                    "The anonymous feature is a game-changer. I was always scared to ask 'simple' questions, but now I can get help without worrying about judgement."
-                  </Text>
-                </Card>
-              </motion.div>
-              
-              <motion.div
-                whileHover={{ y: -5 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <Card p="xl" radius="md" className={classes.testimonialCard}>
-                  <Avatar size="lg" radius="xl" color="blue" className={classes.testimonialAvatar}>C</Avatar>
-                  <Text fw={600} mt="md">CS Student</Text>
-                  <Text size="sm" c="dimmed" fz="xs">3rd Year</Text>
-                  <Text mt="md" fz="sm" className={classes.testimonialText}>
-                    "Being able to ask questions anonymously helped me clear up concepts I was embarrassed to ask about in class. Got amazing answers too!"
-                  </Text>
-                </Card>
-              </motion.div>
-              
-              <motion.div
-                whileHover={{ y: -5 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <Card p="xl" radius="md" className={classes.testimonialCard}>
-                  <Avatar size="lg" radius="xl" color="orange" className={classes.testimonialAvatar}>E</Avatar>
-                  <Text fw={600} mt="md">ECE Student</Text>
-                  <Text size="sm" c="dimmed" fz="xs">1st Year</Text>
-                  <Text mt="md" fz="sm" className={classes.testimonialText}>
-                    "As a freshman, I was intimidated to ask seniors for help. The anonymous mode lets me learn without revealing I'm a first-year student."
-                  </Text>
-                </Card>
-              </motion.div>
-            </SimpleGrid>
-          </Container> */}
-
           {/* Footer CTA */}
           <div className={classes.footerCta}>
             <Container size="md" className={classes.ctaContainer}>
@@ -787,6 +675,8 @@ export function Auth() {
                       variant="outline" 
                       className={classes.secondaryButton}
                       leftSection={<IconBrandGoogle size={18} />}
+                      onClick={handleGoogleLogin}
+                      loading={loading}
                     >
                       Sign in with Google
                     </Button>
@@ -827,100 +717,31 @@ export function Auth() {
           >
             <Container size="sm">
               <Title ta="center" className={classes.authTitle}>
-                {activeTab === 'login' ? 'Welcome Back' : 'Join LNMDoubts'}
+                Sign in with Google
               </Title>
               <Text c="dimmed" size="sm" ta="center" mt="md" mb="xl">
-                {activeTab === 'login' 
-                  ? 'Sign in with your LNMIIT email to continue'
-                  : 'Create an account using your LNMIIT email address'}
+                Use your LNMIIT Google account to sign in
               </Text>
 
-              <Tabs value={activeTab} onChange={setActiveTab} radius="md" className={classes.tabs}>
-                <Tabs.List grow>
-                  <Tabs.Tab value="login">
-                    Login
-                  </Tabs.Tab>
-                  <Tabs.Tab value="register">
-                    Register
-                  </Tabs.Tab>
-                </Tabs.List>
-              </Tabs>
+              {(formError || authError) && (
+                <Text c="red" size="sm" ta="center" mb="sm">
+                  {formError || authError}
+                </Text>
+              )}
 
-              <form onSubmit={handleSubmit}>
-                <Stack mt="xl">
-                  <TextInput
-                    label="Email"
-                    placeholder="your.lnmiit.email@lnmiit.ac.in"
-                    value={formData.email}
-                    onChange={handleInputChange('email')}
-                    icon={<IconMail style={iconStyle} />}
-                    radius="md"
-                    error={formError.includes('email') ? formError : null}
-                  />
-
-                  <PasswordInput
-                    label="Password"
-                    placeholder="Your password"
-                    value={formData.password}
-                    onChange={handleInputChange('password')}
-                    icon={<IconLock style={iconStyle} />}
-                    radius="md"
-                    error={formError.includes('Password') ? formError : null}
-                  />
-
-                  {activeTab === 'register' && (
-                    <PasswordInput
-                      label="Confirm Password"
-                      placeholder="Confirm your password"
-                      value={formData.confirmPassword}
-                      onChange={handleInputChange('confirmPassword')}
-                      icon={<IconLock style={iconStyle} />}
-                      radius="md"
-                      error={formError.includes('match') ? formError : null}
-                    />
-                  )}
-
-                  {(formError || authError) && (
-                    <Text c="red" size="sm" ta="center">
-                      {formError || authError}
-                    </Text>
-                  )}
-
-                  <Button 
-                    type="submit" 
-                    radius="md" 
-                    size="md"
-                    loading={loading}
-                    className={classes.submitButton}
-                    fullWidth
-                  >
-                    {activeTab === 'login' ? 'Sign In' : 'Create Account'}
-                  </Button>
-                </Stack>
-              </form>
-
-              <Divider label="Or continue with" labelPosition="center" my="lg" />
-
-              <Group grow mb="md" mt="md">
-                <Button
+              <Center>
+                <Button 
+                  size="lg" 
                   radius="md"
-                  leftIcon={<IconBrandGoogle size={16} />}
-                  variant="default"
-                  color="gray"
+                  leftIcon={<IconBrandGoogle size={20} />}
+                  onClick={handleGoogleLogin}
+                  loading={loading}
                 >
-                  Google
+                  Continue with Google
                 </Button>
-                <Button
-                  radius="md"
-                  leftIcon={<IconBrandGithub size={16} />}
-                  variant="default"
-                  color="gray"
-                >
-                  GitHub
-                </Button>
-              </Group>
+              </Center>
 
-              <Text c="dimmed" size="sm" ta="center" mt="sm">
+              <Text c="dimmed" size="sm" ta="center" mt={30}>
                 By continuing, you agree to our{' '}
                 <Text component="a" href="#" td="underline" c="blue">
                   Terms of Service
@@ -929,6 +750,10 @@ export function Auth() {
                 <Text component="a" href="#" td="underline" c="blue">
                   Privacy Policy
                 </Text>
+              </Text>
+
+              <Text size="sm" ta="center" mt={15} c="dimmed">
+                Only @lnmiit.ac.in email addresses are allowed to sign in
               </Text>
             </Container>
           </Modal>
