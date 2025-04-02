@@ -669,6 +669,7 @@ export default function Feed() {
                                 leftSection={<IconMessageCircle style={{ width: rem(14), height: rem(14) }} />}
                                 style={styles.commentButton}
                                 radius="xl"
+                                onClick={()=> navigate(`/feed/${doubt.id}`)}
                               >
                                 
                                 {
