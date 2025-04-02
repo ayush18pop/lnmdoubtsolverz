@@ -422,7 +422,7 @@ export function Auth() {
                       LNMDoubts now lets you choose whether to post with your identity or remain completely anonymous.
                     </Text>
                     
-                    <SimpleGrid cols={{ base: 1, sm: 3 }} spacing={20} mt={30}>
+                    <SimpleGrid className='bg-grey' cols={{ base: 1, sm: 3 }} spacing={20} mt={30}>
                       {anonymousBenefits.map((benefit, index) => (
                         <motion.div
                           key={index}
