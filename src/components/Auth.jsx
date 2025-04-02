@@ -270,7 +270,7 @@ export function Auth() {
                   transition={{ duration: 0.6, delay: 0.6 }}
                 >
                   <Text className={classes.subtitle}>
-                    Anytime, Anywhere, by Your Fellow Students
+                    Anytime, Anywhere, Anonymous Doubt Solving by Your Fellow Students
                   </Text>
                 </motion.div>
                 
@@ -395,7 +395,13 @@ export function Auth() {
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
-              <Card radius="lg" className={classes.spotlightCard} shadow="md">
+              <Card 
+  radius="lg" 
+  className={classes.spotlightCard} 
+  shadow="md" 
+  style={{ backgroundColor: 'var(--bg-dark)', borderColor: 'rgba(123, 93, 249, 0.3)' }}
+>
+
                 <SimpleGrid cols={{ base: 1, md: 2 }} spacing={30}>
                   <div className={classes.spotlightContent}>
                     <Badge 
@@ -440,7 +446,12 @@ export function Auth() {
                   </div>
                   
                   <div className={classes.anonymousDemoWrapper}>
-                    <Paper radius="md" p="md" className={classes.anonymousDemo}>
+                  <Paper 
+  radius="md" 
+  p="md" 
+  className={classes.anonymousDemo} 
+  style={{ backgroundColor: 'var(--bg-card)', border: '1px solid rgba(123, 93, 249, 0.3)' }}
+>
                       <Tabs value={activeDemoTab} onChange={setActiveDemoTab} radius="md" variant="pills" mb="md">
                         <Tabs.List grow>
                           <Tabs.Tab value="regular">Regular Post</Tabs.Tab>
@@ -476,7 +487,12 @@ export function Auth() {
                           mb="md"
                         />
                         
-                        <Box mb="md" p="sm" className={classes.demoEditor}>
+                        <Box 
+  mb="md" 
+  p="sm" 
+  className={classes.demoEditor} 
+  style={{ backgroundColor: 'rgba(30, 30, 40, 0.5)', border: '1px solid rgba(123, 93, 249, 0.2)' }}
+>
                           <Text size="sm">
                             {activeDemoTab === 'regular' ? 
                               "Can someone help me with inserting a node in a doubly linked list? My code keeps seg faulting." : 
@@ -567,8 +583,23 @@ export function Auth() {
             <Title order={2} className={classes.sectionTitle} ta="center" mb={50}>
               See What Students Are Discussing
             </Title>
-            <Paper radius="md" p={0} style={{ overflow: 'hidden', border: '1px solid rgba(123, 93, 249, 0.2)' }}>
-              <Box p="md" style={{ borderBottom: '1px solid rgba(123, 93, 249, 0.2)', background: 'var(--bg-card)' }}>
+            <Paper 
+  radius="md" 
+  p={0} 
+  style={{ 
+    overflow: 'hidden', 
+    border: '1px solid rgba(123, 93, 249, 0.3)',
+    backgroundColor: 'var(--bg-dark)' 
+  }}
+>
+<Box 
+  p="md" 
+  style={{ 
+    borderBottom: '1px solid rgba(123, 93, 249, 0.3)', 
+    background: 'var(--bg-card)',
+    color: 'var(--text-color)'
+  }}
+>
                 <Group position="apart">
                   <Group>
                     <IconMessageDots size={20} style={{ color: 'var(--primary)' }} />
@@ -600,7 +631,14 @@ export function Auth() {
                       transition: { duration: 0.2 }
                     }}
                   >
-                    <Box p="md" mb="md" style={{ borderBottom: '1px solid rgba(123, 93, 249, 0.1)' }}>
+                   <Box 
+  p="md" 
+  mb="md" 
+  style={{ 
+    borderBottom: '1px solid rgba(123, 93, 249, 0.1)',
+    color: 'var(--text-color)'
+  }}
+>
                       <Group position="apart" mb="xs">
                         <Group>
                           {post.isAnonymous ? (
