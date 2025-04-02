@@ -542,11 +542,11 @@ const uploadImage = async (file) => {
                         </ActionIcon>
                       </Tooltip>
                       
-                      <Tooltip label="Save doubt">
+                      {/* <Tooltip label="Save doubt">
                         <ActionIcon variant="subtle" onClick={handleSavePost} color="yellow" radius="xl" size="lg">
                           <IconBookmark size={18} />
                         </ActionIcon>
-                      </Tooltip>
+                      </Tooltip> */}
                     </Group>
                   </Group>
                 </Card>
