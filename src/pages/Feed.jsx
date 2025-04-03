@@ -536,13 +536,13 @@ export default function Feed() {
                                   </ActionIcon>
                                 </Menu.Target>
                                 <Menu.Dropdown bg="dark.7" borderColor="dark.4">
-                                  <Menu.Item 
+                                  {/* <Menu.Item 
                                     leftSection={<IconBookmark style={{ width: rem(14), height: rem(14) }} color="#d0bfff" />}
                                     c="gray.0"
                                     onClick={() => handleSavePost(doubt)}
                                   >
                                     Save post
-                                  </Menu.Item>
+                                  </Menu.Item> */}
                                   <Menu.Item 
                                     leftSection={<IconShare style={{ width: rem(14), height: rem(14) }} color="#d0bfff" />}
                                     c="gray.0"
