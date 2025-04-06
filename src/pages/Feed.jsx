@@ -245,52 +245,31 @@ export default function Feed() {
       const doubtRef = doc(db, 'doubts', doubtId);
       const doubt = doubts.find(d => d.id === doubtId);
       
-      const hasUpvoted = doubt.upvotedBy.includes(user.uid);
-      const hasDownvoted = doubt.downvotedBy.includes(user.uid);
-
       let updates = {};
 
       if (voteType === 'up') {
-        if (hasUpvoted) {
-          updates = {
-            upvotedBy: arrayRemove(user.uid),
-            totalVotes: (doubt.totalVotes || 0) - 1
-          };
-        } else {
-          updates = {
-            upvotedBy: arrayUnion(user.uid),
-            downvotedBy: hasDownvoted ? arrayRemove(user.uid) : doubt.downvotedBy,
-            totalVotes: (doubt.totalVotes || 0) + (hasDownvoted ? 2 : 1)
-          };
-        }
-      } else {
-        if (hasDownvoted) {
-          updates = {
-            downvotedBy: arrayRemove(user.uid),
-            totalVotes: (doubt.totalVotes || 0) + 1
-          };
-        } else {
-          updates = {
-            downvotedBy: arrayUnion(user.uid),
-            upvotedBy: hasUpvoted ? arrayRemove(user.uid) : doubt.upvotedBy,
-            totalVotes: (doubt.totalVotes || 0) - (hasUpvoted ? 2 : 1)
-          };
-        }
+        updates = {
+          upvotedBy: arrayUnion(user.uid),
+          totalVotes: (doubt.totalVotes || 0) + 1
+        };
+      } else if (voteType === 'down') {
+        updates = {
+          downvotedBy: arrayUnion(user.uid),
+          totalVotes: (doubt.totalVotes || 0) - 1
+        };  
       }
 
       await updateDoc(doubtRef, updates);
+      
       setDoubts(prevDoubts => 
         prevDoubts.map(d => 
           d.id === doubtId 
             ? {
                 ...d,
                 ...updates,
-                upvotedBy: voteType === 'up' 
-                  ? (hasUpvoted ? d.upvotedBy.filter(id => id !== user.uid) : [...d.upvotedBy, user.uid])
-                  : (hasUpvoted ? d.upvotedBy.filter(id => id !== user.uid) : d.upvotedBy),
-                downvotedBy: voteType === 'down'
-                  ? (hasDownvoted ? d.downvotedBy.filter(id => id !== user.uid) : [...d.downvotedBy, user.uid])
-                  : (hasDownvoted ? d.downvotedBy.filter(id => id !== user.uid) : d.downvotedBy)
+                upvotedBy: voteType === 'up' ? [...d.upvotedBy, user.uid] : d.upvotedBy,
+                downvotedBy: voteType === 'down' ? [...d.downvotedBy, user.uid] : d.downvotedBy,
+                totalVotes: voteType === 'up' ? d.totalVotes + 1 : d.totalVotes - 1
               }
             : d
         )
@@ -299,8 +278,8 @@ export default function Feed() {
       notifications.show({
         title: 'Success',
         message: voteType === 'up' 
-          ? (hasUpvoted ? 'Upvote removed' : 'Doubt upvoted')
-          : (hasDownvoted ? 'Downvote removed' : 'Doubt downvoted'),
+          ? 'Doubt upvoted'
+          : 'Doubt downvoted',
         color: 'green',
         autoClose: 2000,
       });
