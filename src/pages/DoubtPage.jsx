@@ -306,48 +306,48 @@ const uploadImage = async (file) => {
   
       if (voteType === 'up') {
         //uncomment this later
-        // const hasUpvoted = currentUpvoted.includes(user.uid);
-        // const hasDownvoted = currentDownvoted.includes(user.uid);
+        const hasUpvoted = currentUpvoted.includes(user.uid);
+        const hasDownvoted = currentDownvoted.includes(user.uid);
   
-        // if (hasUpvoted) {
-        //   // Remove upvote
-        //   newUpvoted = currentUpvoted.filter(uid => uid !== user.uid);
-        //   newTotalVotes -= 1;
-        // } else {
+        if (hasUpvoted) {
+          // Remove upvote
+          newUpvoted = currentUpvoted.filter(uid => uid !== user.uid);
+          newTotalVotes -= 1;
+        } else {
         // Add upvote and remove downvote if exists
         newUpvoted = [...currentUpvoted, user.uid];
-          // if (hasDownvoted) {
-          //   newDownvoted = currentDownvoted.filter(uid => uid !== user.uid);
-          //   newTotalVotes += 2; // Removing a downvote (+1) and adding an upvote (+1)
-          // } else {
+          if (hasDownvoted) {
+            newDownvoted = currentDownvoted.filter(uid => uid !== user.uid);
+            newTotalVotes += 2; // Removing a downvote (+1) and adding an upvote (+1)
+          } else {
         newTotalVotes += 1;
-        //   }
-        // }     
+          }
+        }     
        } else if (voteType === 'down') {
         //testing purposes: removing the one downvote logic
-        newDownvoted = [...currentDownvoted, user.uid];
-        newTotalVotes -= 1;
+        // newDownvoted = [...currentDownvoted, user.uid];
+        // newTotalVotes -= 1;
 
 
 
         // //remove this later
-        // const hasDownvoted = currentDownvoted.includes(user.uid);
-        // const hasUpvoted = currentUpvoted.includes(user.uid);
+        const hasDownvoted = currentDownvoted.includes(user.uid);
+        const hasUpvoted = currentUpvoted.includes(user.uid);
   
-        // if (hasDownvoted) {
-        //   // Remove downvote
-        //   newDownvoted = currentDownvoted.filter(uid => uid !== user.uid);
-        //   newTotalVotes += 1;
-        // } else {
-        //   // Add downvote and remove upvote if exists
-        //   newDownvoted = [...currentDownvoted, user.uid];
-        //   if (hasUpvoted) {
-        //     newUpvoted = currentUpvoted.filter(uid => uid !== user.uid);
-        //     newTotalVotes -= 2; // Removing an upvote (-1) and adding a downvote (-1)
-        //   } else {
-        //     newTotalVotes -= 1;
-        //   }
-        // }
+        if (hasDownvoted) {
+          // Remove downvote
+          newDownvoted = currentDownvoted.filter(uid => uid !== user.uid);
+          newTotalVotes += 1;
+        } else {
+          // Add downvote and remove upvote if exists
+          newDownvoted = [...currentDownvoted, user.uid];
+          if (hasUpvoted) {
+            newUpvoted = currentUpvoted.filter(uid => uid !== user.uid);
+            newTotalVotes -= 2; // Removing an upvote (-1) and adding a downvote (-1)
+          } else {
+            newTotalVotes -= 1;
+          }
+        }
       }
   
       // Update the doubt document in Firestore

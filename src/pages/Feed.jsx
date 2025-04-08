@@ -240,46 +240,70 @@ export default function Feed() {
       });
       return;
     }
-
+  
     try {
       const doubtRef = doc(db, 'doubts', doubtId);
       const doubt = doubts.find(d => d.id === doubtId);
-      
-      let updates = {};
-
+  
+      const currentUpvoted = doubt.upvotedBy || [];
+      const currentDownvoted = doubt.downvotedBy || [];
+      let newUpvoted = [...currentUpvoted];
+      let newDownvoted = [...currentDownvoted];
+      let newTotalVotes = doubt.totalVotes || 0;
+  
+      const hasUpvoted = currentUpvoted.includes(user.uid);
+      const hasDownvoted = currentDownvoted.includes(user.uid);
+  
       if (voteType === 'up') {
-        updates = {
-          upvotedBy: arrayUnion(user.uid),
-          totalVotes: (doubt.totalVotes || 0) + 1
-        };
+        if (hasUpvoted) {
+          newUpvoted = currentUpvoted.filter(uid => uid !== user.uid);
+          newTotalVotes -= 1;
+        } else {
+          newUpvoted = [...currentUpvoted, user.uid];
+          if (hasDownvoted) {
+            newDownvoted = currentDownvoted.filter(uid => uid !== user.uid);
+            newTotalVotes += 2;
+          } else {
+            newTotalVotes += 1;
+          }
+        }
       } else if (voteType === 'down') {
-        updates = {
-          downvotedBy: arrayUnion(user.uid),
-          totalVotes: (doubt.totalVotes || 0) - 1
-        };  
+        if (hasDownvoted) {
+          newDownvoted = currentDownvoted.filter(uid => uid !== user.uid);
+          newTotalVotes += 1;
+        } else {
+          newDownvoted = [...currentDownvoted, user.uid];
+          if (hasUpvoted) {
+            newUpvoted = currentUpvoted.filter(uid => uid !== user.uid);
+            newTotalVotes -= 2;
+          } else {
+            newTotalVotes -= 1;
+          }
+        }
       }
-
-      await updateDoc(doubtRef, updates);
-      
-      setDoubts(prevDoubts => 
-        prevDoubts.map(d => 
-          d.id === doubtId 
+  
+      await updateDoc(doubtRef, {
+        upvotedBy: newUpvoted,
+        downvotedBy: newDownvoted,
+        totalVotes: newTotalVotes,
+      });
+  
+      setDoubts(prevDoubts =>
+        prevDoubts.map(d =>
+          d.id === doubtId
             ? {
                 ...d,
-                ...updates,
-                upvotedBy: voteType === 'up' ? [...d.upvotedBy, user.uid] : d.upvotedBy,
-                downvotedBy: voteType === 'down' ? [...d.downvotedBy, user.uid] : d.downvotedBy,
-                totalVotes: voteType === 'up' ? d.totalVotes + 1 : d.totalVotes - 1
+                upvotedBy: newUpvoted,
+                downvotedBy: newDownvoted,
+                totalVotes: newTotalVotes,
               }
             : d
         )
       );
-      
+  
       notifications.show({
         title: 'Success',
-        message: voteType === 'up' 
-          ? 'Doubt upvoted'
-          : 'Doubt downvoted',
+        message: voteType === 'up' ? 'Doubt upvoted' : 'Doubt downvoted',
         color: 'green',
         autoClose: 2000,
       });
@@ -292,6 +316,7 @@ export default function Feed() {
       });
     }
   };
+  
 
   const handleSavePost = (doubt) => {
     if (!user) {
