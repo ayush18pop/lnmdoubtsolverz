@@ -24,10 +24,12 @@ import {
   ThemeIcon,
   Tooltip,
   useMantineTheme,
-  Menu
+  Menu,
+  Modal,
+  TextInput
 } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
   doc,
@@ -81,6 +83,14 @@ function DoubtPage() {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const commentInputRef = useRef(null);
   const theme = useMantineTheme();
+  const navigate = useNavigate();
+  
+  // Edit doubt state
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editImage, setEditImage] = useState(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   // Function to fetch the doubt details
   const fetchDoubt = async () => {
@@ -140,11 +150,12 @@ function DoubtPage() {
       });
     }
   };
+
   const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
   const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
-  // Function to upload an image to Firebase Storage
- // Function to upload an image to Cloudinary
-const uploadImage = async (file) => {
+
+  // Function to upload an image to Cloudinary
+  const uploadImage = async (file) => {
     if (!file) return null;
     
     setUploadingImage(true);
@@ -416,6 +427,102 @@ const uploadImage = async (file) => {
     }
   };
 
+  // Function to handle edit doubt
+  const handleEditDoubt = async () => {
+    try {
+      const doubtRef = doc(db, 'doubts', id);
+      
+      // Prepare the update data
+      const updateData = {
+        title: editTitle,
+        description: editDescription,
+        updatedAt: serverTimestamp()
+      };
+      
+      // If there's a new image, upload it
+      if (editImage && typeof editImage !== 'string') {
+        setUploadingImage(true);
+        setUploadProgress(0);
+        
+        const imageUrl = await uploadImage(editImage);
+        if (imageUrl) {
+          updateData.imageURL = imageUrl;
+        }
+        
+        setUploadingImage(false);
+      }
+      
+      // Update the document
+      await updateDoc(doubtRef, updateData);
+      
+      // Update the local state
+      setDoubt(prev => ({
+        ...prev,
+        title: editTitle,
+        description: editDescription,
+        imageURL: editImage && typeof editImage !== 'string' ? updateData.imageURL : prev.imageURL
+      }));
+      
+      // Close the modal and show success notification
+      setEditModalOpen(false);
+      notifications.show({
+        title: 'Success',
+        message: 'Doubt updated successfully!',
+        color: 'green',
+      });
+    } catch (error) {
+      console.error('Error updating doubt:', error);
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to update doubt. Please try again.',
+        color: 'red',
+      });
+    }
+  };
+
+  // Function to handle delete doubt
+  const handleDeleteDoubt = async () => {
+    try {
+      // Delete the comments subcollection first
+      const commentsRef = collection(db, 'doubts', id, 'comments');
+      const commentsSnapshot = await getDocs(commentsRef);
+      
+      const deletePromises = commentsSnapshot.docs.map(commentDoc => 
+        deleteDoc(doc(db, 'doubts', id, 'comments', commentDoc.id))
+      );
+      
+      await Promise.all(deletePromises);
+      
+      // Now delete the doubt document
+      await deleteDoc(doc(db, 'doubts', id));
+      
+      // Navigate back to feed
+      navigate('/feed');
+      
+      // Show success notification
+      notifications.show({
+        title: 'Success',
+        message: 'Doubt deleted successfully!',
+        color: 'green',
+      });
+    } catch (error) {
+      console.error('Error deleting doubt:', error);
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to delete doubt. Please try again.',
+        color: 'red',
+      });
+    }
+  };
+
+  // Open edit modal with current doubt data
+  const openEditModal = () => {
+    setEditTitle(doubt.title);
+    setEditDescription(doubt.description);
+    setEditImage(doubt.imageURL);
+    setEditModalOpen(true);
+  };
+  
   // Fetch doubt and comments when component mounts or id changes
   useEffect(() => {
     if (id) {
@@ -479,11 +586,40 @@ const uploadImage = async (file) => {
                         </Group>
                       </div>
                     </Group>
-                    {doubt.subject && (
-                      <Badge color="violet" variant="light">
-                        {doubt.subject}
-                      </Badge>
-                    )}
+                    
+                    <Group>
+                      {doubt.subject && (
+                        <Badge color="violet" variant="light" mr="md">
+                          {doubt.subject}
+                        </Badge>
+                      )}
+                      
+                      {/* Three-dot menu for edit/delete - only visible to author */}
+                      {user && (doubt.userId === user.uid || doubt.postedBy === `/users/${user.uid}`) && !doubt.isAnonymous && (
+                        <Menu position="bottom-end" shadow="md">
+                          <Menu.Target>
+                            <ActionIcon variant="subtle">
+                              <IconDotsVertical size={18} />
+                            </ActionIcon>
+                          </Menu.Target>
+                          <Menu.Dropdown>
+                            <Menu.Item 
+                              icon={<IconEdit size={14} />} 
+                              onClick={openEditModal}
+                            >
+                              Edit Doubt
+                            </Menu.Item>
+                            <Menu.Item 
+                              icon={<IconTrash size={14} />} 
+                              color="red"
+                              onClick={() => setDeleteModalOpen(true)}
+                            >
+                              Delete Doubt
+                            </Menu.Item>
+                          </Menu.Dropdown>
+                        </Menu>
+                      )}
+                    </Group>
                   </Group>
                   
                   {/* Doubt Title and Content */}
@@ -499,11 +635,10 @@ const uploadImage = async (file) => {
                     <div style={{ marginBottom: '20px' }}>
                       <Image 
                         src={doubt.imageURL} 
-                        alt="Doubt image" 
-                        radius="md"
-                        style={{ maxWidth: '100%' }}
+                        alt="Doubt attachment" 
+                        radius="md" 
+                        style={{ maxWidth: '100%', cursor: 'pointer' }} 
                         onClick={() => window.open(doubt.imageURL, '_blank')}
-                        sx={{ cursor: 'pointer' }}
                       />
                     </div>
                   )}
@@ -594,7 +729,7 @@ const uploadImage = async (file) => {
                           <Image 
                             src={URL.createObjectURL(commentImage)} 
                             alt="Comment image preview" 
-                            radius="md" 
+                            radius="md"
                             height={150} 
                             fit="contain"
                           />
@@ -762,8 +897,108 @@ const uploadImage = async (file) => {
             )}
           </Container>
         </div>
-        </div>
+      </div>
       
+      {/* Edit Doubt Modal */}
+      <Modal
+        opened={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        title="Edit Doubt"
+        size="lg"
+        centered
+      >
+        <Stack spacing="md">
+          <TextInput
+            label="Title"
+            placeholder="Doubt title"
+            value={editTitle}
+            onChange={(event) => setEditTitle(event.currentTarget.value)}
+            required
+          />
+          
+          <Textarea
+            label="Description"
+            placeholder="Describe your doubt in detail"
+            value={editDescription}
+            onChange={(event) => setEditDescription(event.currentTarget.value)}
+            minRows={4}
+            required
+          />
+          
+          {doubt && doubt.type === 'image' && (
+            <div>
+              <Text size="sm" weight={500} mb="xs">
+                Image
+              </Text>
+              
+              {editImage ? (
+                <div style={{ position: 'relative', marginBottom: '10px' }}>
+                  <Image
+                    src={typeof editImage === 'string' ? editImage : URL.createObjectURL(editImage)}
+                    alt="Doubt image"
+                    radius="md"
+                    style={{ maxWidth: '100%', maxHeight: '200px' }}
+                  />
+                  <Button
+                    size="xs"
+                    color="red"
+                    variant="filled"
+                    style={{ position: 'absolute', top: 5, right: 5 }}
+                    onClick={() => setEditImage(null)}
+                  >
+                    <IconTrash size={14} />
+                  </Button>
+                </div>
+              ) : (
+                <FileButton
+                  onChange={setEditImage}
+                  accept="image/png,image/jpeg"
+                >
+                  {(props) => (
+                    <Button {...props} variant="outline" leftIcon={<IconPhoto size={14} />}>
+                      Upload Image
+                    </Button>
+                  )}
+                </FileButton>
+              )}
+            </div>
+          )}
+          
+          {uploadingImage && (
+            <Progress value={uploadProgress} size="sm" color="violet" />
+          )}
+          
+          <Group position="right" mt="md">
+            <Button variant="outline" onClick={() => setEditModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button color="violet" onClick={handleEditDoubt} loading={uploadingImage}>
+              Save Changes
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+      
+      {/* Delete Confirmation Modal */}
+      <Modal
+        opened={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        title="Delete Doubt"
+        size="md"
+        centered
+      >
+        <Text mb="lg">
+          Are you sure you want to delete this doubt? This action cannot be undone.
+        </Text>
+        <Group position="right">
+          <Button variant="outline" onClick={() => setDeleteModalOpen(false)}>
+            Cancel
+          </Button>
+          <Button color="red" onClick={handleDeleteDoubt}>
+            Delete
+          </Button>
+        </Group>
+      </Modal>
     </MantineProvider>
   );
 }

@@ -715,7 +715,7 @@ export function Auth() {
               blur: 3,
             }}
           >
-            <Container size="sm" style={{ backgroundColor: 'var(--bg-dark)' }}>
+            <Container size="sm" style={{ backgroundColor: '#10101400' }}>
               <Title ta="center" className={classes.authTitle}>
                 Sign in with Google
               </Title>
