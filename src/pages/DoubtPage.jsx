@@ -238,10 +238,25 @@ function DoubtPage() {
         commentCount: increment(1),
       });
 
+      // Update local state immediately
+      setComments((prevComments) => [
+        {
+          id: Date.now().toString(), // temporary ID until refresh
+          ...commentData,
+          timestamp: new Date(), // temporary timestamp until refresh
+        },
+        ...prevComments,
+      ]);
+
+      // Update doubt's comment count in local state
+      setDoubt((prevDoubt) => ({
+        ...prevDoubt,
+        commentCount: (prevDoubt.commentCount || 0) + 1,
+      }));
+
       setNewComment('');
       setCommentImage(null);
       setUploadProgress(0);
-      fetchComments();
 
       notifications.show({
         title: 'Success',
@@ -547,7 +562,7 @@ function DoubtPage() {
                     )}
 
                     {/* Edit/Delete menu for author */}
-                    {user && (doubt.userId === user.uid || doubt.postedBy === `${user.uid}`)  && (
+                    {user && (doubt.userId === user.uid || doubt.postedBy === `${user.uid}`) && (
                       <Menu position="bottom-end" shadow="md">
                         <Menu.Target>
                           <ActionIcon variant="subtle">

@@ -708,7 +708,7 @@ export default function Feed() {
                                 variant="light"
                                 size="xs"
                                 color="violet"
-                                onClick={() => navigate(`/doubt/${doubt.id}`)}
+                                onClick={() => navigate(`/feed/${doubt.id}`)}
                                 leftIcon={<IconMessage style={{ width: rem(16), height: rem(16) }} />}
                               >
                                 {
