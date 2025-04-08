@@ -576,7 +576,7 @@ export default function Feed() {
                                   </ActionIcon>
                                 </Menu.Target>
                                 <Menu.Dropdown bg="dark.7" borderColor="dark.4">
-                                  {user && (doubt.userId === user.uid || doubt.postedBy === `/users/${user.uid}`) && !doubt.isAnonymous && (
+                                  {user && (doubt.userId === user.uid || doubt.postedBy === `${user.uid}`)  && (
                                     <>
                                       <Menu.Item 
                                         leftSection={<IconEdit style={{ width: rem(14), height: rem(14) }} color="#d0bfff" />}
@@ -709,9 +709,10 @@ export default function Feed() {
                                 size="xs"
                                 color="violet"
                                 onClick={() => navigate(`/doubt/${doubt.id}`)}
-                                leftSection={<IconMessage style={{ width: rem(16), height: rem(16) }} />}
+                                leftIcon={<IconMessage style={{ width: rem(16), height: rem(16) }} />}
                               >
-                                {doubt.commentCount || 0} Comments
+                                {
+                                doubt.commentCount || 0} Comments
                               </Button>
                             </Group>
                           </Flex>
@@ -738,8 +739,8 @@ export default function Feed() {
                 </Text>
                 <Button 
                   variant="filled" 
-                  color="violet" 
-                  leftSection={<IconMessage size={14} />}
+                  color="violet.7" 
+                  leftIcon={<IconMessage size={14} />}
                   radius="xl"
                   onClick={()=> {navigate('/postdoubt')}}
                 >

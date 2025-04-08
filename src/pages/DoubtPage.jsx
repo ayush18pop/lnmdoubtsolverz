@@ -547,7 +547,7 @@ function DoubtPage() {
                     )}
 
                     {/* Edit/Delete menu for author */}
-                    {user && (doubt.userId === user.uid || doubt.postedBy === `/users/${user.uid}`) && !doubt.isAnonymous && (
+                    {user && (doubt.userId === user.uid || doubt.postedBy === `${user.uid}`)  && (
                       <Menu position="bottom-end" shadow="md">
                         <Menu.Target>
                           <ActionIcon variant="subtle">

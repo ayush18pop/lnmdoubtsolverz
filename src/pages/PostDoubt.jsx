@@ -212,7 +212,7 @@ export default function PostDoubt() {
         tags,
         imageURL: imageUrl,
         email: user.email,
-        postedBy: `/users/${user.uid}`,
+        postedBy: `${user.uid}`,
         isAnonymous,
         status: 'open',
         commentCount: 0,
