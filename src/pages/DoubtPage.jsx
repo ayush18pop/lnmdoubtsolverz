@@ -88,6 +88,8 @@ function DoubtPage() {
   // Edit and delete states
   const [editingDoubt, setEditingDoubt] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [editingComment, setEditingComment] = useState(null);
+  const [editedCommentText, setEditedCommentText] = useState('');
 
   // Function to fetch the doubt details
   const fetchDoubt = async () => {
@@ -275,7 +277,71 @@ function DoubtPage() {
     }
   };
 
-  const handleDeleteComment = async () => {};
+  // Function to handle edit comment
+  const handleEditComment = async (commentId, newText) => {
+    try {
+      const commentRef = doc(db, 'doubts', id, 'comments', commentId);
+      await updateDoc(commentRef, {
+        text: newText,
+        edited: true,
+      });
+
+      setComments(comments.map(comment => 
+        comment.id === commentId 
+          ? { ...comment, text: newText, edited: true }
+          : comment
+      ));
+
+      setEditingComment(null);
+      setEditedCommentText('');
+
+      notifications.show({
+        title: 'Success',
+        message: 'Comment updated successfully',
+        color: 'green',
+      });
+    } catch (err) {
+      console.error('Error updating comment: ', err);
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to update comment. Please try again.',
+        color: 'red',
+      });
+    }
+  };
+
+  // Function to handle delete comment
+  const handleDeleteComment = async (commentId) => {
+    try {
+      const commentRef = doc(db, 'doubts', id, 'comments', commentId);
+      await deleteDoc(commentRef);
+
+      // Update the comment count in the doubt document
+      const doubtRef = doc(db, 'doubts', id);
+      await updateDoc(doubtRef, {
+        commentCount: increment(-1)
+      });
+
+      setComments(comments.filter(comment => comment.id !== commentId));
+      setDoubt(prev => ({
+        ...prev,
+        commentCount: (prev.commentCount || 0) - 1
+      }));
+
+      notifications.show({
+        title: 'Success',
+        message: 'Comment deleted successfully',
+        color: 'green',
+      });
+    } catch (err) {
+      console.error('Error deleting comment: ', err);
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to delete comment. Please try again.',
+        color: 'red',
+      });
+    }
+  };
 
   // Function to handle image selection for comment
   const handleImageSelect = (file) => {
@@ -544,7 +610,7 @@ function DoubtPage() {
                       </Avatar>
                       <div>
                         <Text weight={600} size="sm" color="white" className="flex-1 flex items-start">
-                          {doubt.authorName || doubt.author || 'Anonymous'}
+                          {doubt.isAnonymous ? 'Anonymous' : doubt.email}
                         </Text>
                         <Group spacing="xs">
                           <IconCalendar size={14} color="gray" className="flex-1 flex items-start" />
@@ -747,7 +813,7 @@ function DoubtPage() {
 
                               {/* TODO : IMPLEMENT handleEdit and handleDelete first */}
 
-                              {/* {user?.uid === comment.authorId && !comment.isAnonymous && (
+                               {user?.uid === comment.authorId && !comment.isAnonymous && (
                                 <Menu position="bottom-end">
                                   <Menu.Target>
                                     <ActionIcon variant="subtle" size="sm">
@@ -755,16 +821,65 @@ function DoubtPage() {
                                     </ActionIcon>
                                   </Menu.Target>
                                   <Menu.Dropdown>
-                                    <Menu.Item icon={<IconEdit size={14} />}>Edit</Menu.Item>
-                                    <Menu.Item icon={<IconTrash size={14} />} color="red">Delete</Menu.Item>
+                                    <Menu.Item 
+                                      icon={<IconEdit size={14} />}
+                                      onClick={() => {
+                                        setEditingComment(comment.id);
+                                        setEditedCommentText(comment.text);
+                                      }}
+                                    >
+                                      Edit
+                                    </Menu.Item>
+                                    <Menu.Item 
+                                      icon={<IconTrash size={14} />} 
+                                      color="red"
+                                      onClick={() => handleDeleteComment(comment.id)}
+                                    >
+                                      Delete
+                                    </Menu.Item>
                                   </Menu.Dropdown>
                                 </Menu>
-                              )} */}
+                              )} 
                             </Group>
 
-                            <Text size="sm" color="white" className="flex-1 flex items-start mx-5" style={{ whiteSpace: 'pre-wrap', marginTop: '10px', marginBottom: comment.imageURL ? '10px' : '0' }}>
-                              {comment.text}
-                            </Text>
+                            {editingComment === comment.id ? (
+                              <div style={{ marginTop: '10px', width: '100%' }}>
+                                <Textarea
+                                  value={editedCommentText}
+                                  onChange={(e) => setEditedCommentText(e.target.value)}
+                                  minRows={2}
+                                  style={{ marginBottom: '10px' }}
+                                />
+                                <Group justify="flex-end">
+                                  <Button 
+                                    variant="default" 
+                                    size="xs"
+                                    onClick={() => {
+                                      setEditingComment(null);
+                                      setEditedCommentText('');
+                                    }}
+                                  >
+                                    Cancel
+                                  </Button>
+                                  <Button 
+                                    color="violet" 
+                                    size="xs"
+                                    onClick={() => handleEditComment(comment.id, editedCommentText)}
+                                  >
+                                    Save
+                                  </Button>
+                                </Group>
+                              </div>
+                            ) : (
+                              <Text size="sm" color="white" className="flex-1 flex items-start mx-5" style={{ whiteSpace: 'pre-wrap', marginTop: '10px', marginBottom: comment.imageURL ? '10px' : '0' }}>
+                                {comment.text}
+                                {comment.edited && (
+                                  <Text component="span" size="xs" color="dimmed" ml={5}>
+                                    (edited)
+                                  </Text>
+                                )}
+                              </Text>
+                            )}
 
                             {comment.imageURL && (
                               <Image
