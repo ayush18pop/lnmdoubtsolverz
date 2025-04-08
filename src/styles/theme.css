@@ -1,9 +1,13 @@
-/* Base styles */
+/* Base styles - Force dark mode */
+:root {
+  color-scheme: dark;
+}
+
 body {
   @apply bg-app-dark text-app-light;
 }
 
-/* Component-specific styles */
+/* Component styles */
 .navbar {
   @apply bg-dark-darker border-r border-gray-800;
 }
@@ -33,4 +37,4 @@ a {
 /* Headings */
 h1, h2, h3, h4, h5, h6 {
   @apply text-app-light;
-} 
+}
