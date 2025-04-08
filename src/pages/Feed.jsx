@@ -29,11 +29,9 @@ import {
   MantineProvider,
   Modal,
   TextInput,
-  Textarea,
-  Progress,
-  FileButton,
-  Stack
+  Textarea
 } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
 import { 
   IconArrowUp, 
   IconArrowDown,
@@ -42,7 +40,9 @@ import {
   IconMessage,
   IconShare,
   IconBookmark,
-  IconDots,
+  IconDotsVertical,
+  IconEdit,
+  IconTrash,
   IconUserCheck,
   IconPhoto,
   IconTrendingUp,
@@ -54,9 +54,7 @@ import {
   IconBrandAbstract,
   IconPackages,
   IconFileAi,
-  IconFileChart,
-  IconEdit,
-  IconTrash
+  IconFileChart
 } from '@tabler/icons-react';
 import { collection, query, orderBy, getDocs, updateDoc, doc, arrayUnion, arrayRemove, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
@@ -70,6 +68,7 @@ import { Navigate } from 'react-router-dom';
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 
+
 // Define styles using CSS classes instead of createStyles
 // You'll need to have these classes in your Feed.module.css file
 // or you can use inline styles as shown below
@@ -79,20 +78,83 @@ export default function Feed() {
   const [sortBy, setSortBy] = useState('latest');
   const [activeTab, setActiveTab] = useState('all');
   const [loading, setLoading] = useState(true);
+  const [editingDoubt, setEditingDoubt] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
   const { user } = useSelector(state => state.auth);
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [filtersOpened, { toggle: toggleFilters }] = useDisclosure(false);
   const navigate = useNavigate();
-  
-  // Edit and delete states
-  const [editDoubtId, setEditDoubtId] = useState(null);
-  const [editTitle, setEditTitle] = useState('');
-  const [editDescription, setEditDescription] = useState('');
-  const [editImage, setEditImage] = useState(null);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [deleteDoubtId, setDeleteDoubtId] = useState(null);
-  
+  // Define inline styles since createStyles is not available
+  const styles = {
+    appContainer: {
+      backgroundColor: '#1A1B1E', // dark[9] equivalent
+      minHeight: '100vh',
+      color: '#C1C2C5', // gray[1] equivalent
+    },
+    wrapper: {
+      display: 'flex',
+      alignItems: 'flex-start',
+      padding: '16px',
+      backgroundColor: '#25262B', // dark[7] equivalent
+      borderRadius: '8px',
+      transition: 'background-color 200ms ease',
+      marginTop: '8px',
+      marginBottom: '8px',
+    },
+    image: {
+      maxWidth: 300,
+      height: 200,
+      objectFit: 'cover',
+      borderRadius: '8px',
+      marginLeft: '24px',
+    },
+    title: {
+      color: '#F8F9FA', // gray[0] equivalent
+      fontWeight: 700,
+      fontSize: '1.5rem',
+      lineHeight: 1.2,
+      marginBottom: '8px',
+    },
+    placeholder: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#2C2E33', // dark[6] equivalent
+      borderRadius: '8px',
+      height: 200,
+      width: 300,
+      marginLeft: '24px',
+    },
+    metadata: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      marginTop: '8px',
+      flexWrap: 'wrap',
+    },
+    sortingPaper: {
+      border: '1px solid #373A40', // dark[5] equivalent
+      backgroundColor: '#1A1B1E', // dark[8] equivalent
+    },
+    doubtCard: {
+      border: '1px solid #373A40', // dark[5] equivalent
+      transition: 'all 0.2s ease',
+      backgroundColor: '#1A1B1E', // dark[8] equivalent
+    },
+    voteButton: {
+      '&:hover': {
+        backgroundColor: '#373A40', // dark[5] equivalent
+      }
+    },
+    commentButton: {
+      backgroundColor: '#3B1B6C', // violet[9] equivalent
+      color: '#E4CCF7', // violet[1] equivalent
+    },
+    skeleton: {
+      // These styles will be applied via className
+    }
+  };
+
   useEffect(() => {
     fetchDoubts();
     
@@ -283,7 +345,7 @@ export default function Feed() {
 
   const handleShare = (doubt) => {
     // Copy the URL to clipboard
-    const shareUrl = `${window.location.origin}/feed/${doubt.id}`;
+    const shareUrl = `${window.location.origin}/doubt/${doubt.id}`;
     navigator.clipboard.writeText(shareUrl);
     
     notifications.show({
@@ -293,225 +355,61 @@ export default function Feed() {
       autoClose: 2000,
     });
   };
-  
-  // Upload image to Cloudinary
-  const uploadImage = async (file) => {
-    if (!file) return null;
-    
-    setUploadingImage(true);
-    setUploadProgress(0);
-    
+
+  const handleEditDoubt = async (doubtId, newTitle, newDescription) => {
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
-      
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`,
-        {
-          method: 'POST',
-          body: formData
-        }
-      );
-      
-      setUploadProgress(50);
-      
-      if (!response.ok) {
-        throw new Error('Failed to upload image');
-      }
-      
-      const data = await response.json();
-      setUploadProgress(100);
-      
-      return data.secure_url;
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to upload image. Please try again.',
-        color: 'red',
-      });
-      return null;
-    } finally {
-      setUploadingImage(false);
-    }
-  };
-  
-  // Function to handle edit doubt
-  const handleEditDoubt = async () => {
-    if (!editDoubtId) return;
-    
-    try {
-      const doubtRef = doc(db, 'doubts', editDoubtId);
-      
-      // Prepare the update data
-      const updateData = {
-        title: editTitle,
-        description: editDescription,
+      await updateDoc(doc(db, 'doubts', doubtId), {
+        title: newTitle,
+        description: newDescription,
         updatedAt: serverTimestamp()
-      };
-      
-      // If there's a new image, upload it
-      if (editImage && typeof editImage !== 'string') {
-        const imageUrl = await uploadImage(editImage);
-        if (imageUrl) {
-          updateData.imageURL = imageUrl;
-        }
-      }
-      
-      // Update the document
-      await updateDoc(doubtRef, updateData);
-      
-      // Update the local state
-      setDoubts(prevDoubts => 
-        prevDoubts.map(doubt => 
-          doubt.id === editDoubtId 
-            ? {
-                ...doubt,
-                title: editTitle,
-                description: editDescription,
-                imageURL: editImage && typeof editImage !== 'string' ? updateData.imageURL : doubt.imageURL
-              }
-            : doubt
-        )
-      );
-      
-      // Close the edit modal
-      setEditDoubtId(null);
-      
-      notifications.show({
-        title: 'Success',
-        message: 'Doubt updated successfully!',
-        color: 'green',
       });
-    } catch (error) {
-      console.error('Error updating doubt:', error);
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to update doubt. Please try again.',
-        color: 'red',
-      });
+      
+      setDoubts(prev => prev.map(d => d.id === doubtId ? {...d, title: newTitle, description: newDescription} : d));
+      setEditingDoubt(null);
+      notifications.show({ title: 'Success', message: 'Doubt updated', color: 'green' });
+    } catch (err) {
+      console.error(err);
+      notifications.show({ title: 'Error', message: 'Failed to update doubt', color: 'red' });
     }
-  };
-  
-  // Function to handle delete doubt
-  const handleDeleteDoubt = async () => {
-    if (!deleteDoubtId) return;
-    
-    try {
-      // Delete the comments subcollection first
-      const commentsRef = collection(db, 'doubts', deleteDoubtId, 'comments');
-      const commentsSnapshot = await getDocs(commentsRef);
-      
-      const deletePromises = commentsSnapshot.docs.map(commentDoc => 
-        deleteDoc(doc(db, 'doubts', deleteDoubtId, 'comments', commentDoc.id))
-      );
-      
-      await Promise.all(deletePromises);
-      
-      // Now delete the doubt document
-      await deleteDoc(doc(db, 'doubts', deleteDoubtId));
-      
-      // Update the local state
-      setDoubts(prevDoubts => prevDoubts.filter(doubt => doubt.id !== deleteDoubtId));
-      
-      // Reset the delete state
-      setDeleteDoubtId(null);
-      
-      // Show success notification
-      notifications.show({
-        title: 'Success',
-        message: 'Doubt deleted successfully!',
-        color: 'green',
-      });
-    } catch (error) {
-      console.error('Error deleting doubt:', error);
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to delete doubt. Please try again.',
-        color: 'red',
-      });
-    }
-  };
-  
-  // Open edit modal with doubt data
-  const openEditModal = (doubt) => {
-    setEditDoubtId(doubt.id);
-    setEditTitle(doubt.title);
-    setEditDescription(doubt.description);
-    setEditImage(doubt.imageURL);
   };
 
-  // Define inline styles since createStyles is not available
-  const styles = {
-    appContainer: {
-      backgroundColor: '#1A1B1E', // dark[9] equivalent
-      minHeight: '100vh',
-      color: '#C1C2C5', // gray[1] equivalent
-    },
-    wrapper: {
-      display: 'flex',
-      alignItems: 'flex-start',
-      padding: '16px',
-      backgroundColor: '#25262B', // dark[7] equivalent
-      borderRadius: '8px',
-      transition: 'background-color 200ms ease',
-      marginTop: '8px',
-      marginBottom: '8px',
-    },
-    image: {
-      maxWidth: 300,
-      height: 200,
-      objectFit: 'cover',
-      borderRadius: '8px',
-      marginLeft: '24px',
-    },
-    title: {
-      color: '#F8F9FA', // gray[0] equivalent
-      fontWeight: 700,
-      fontSize: '1.5rem',
-      lineHeight: 1.2,
-      marginBottom: '8px',
-    },
-    placeholder: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#2C2E33', // dark[6] equivalent
-      borderRadius: '8px',
-      height: 200,
-      width: 300,
-      marginLeft: '24px',
-    },
-    metadata: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      marginTop: '8px',
-      flexWrap: 'wrap',
-    },
-    sortingPaper: {
-      border: '1px solid #373A40', // dark[5] equivalent
-      backgroundColor: '#1A1B1E', // dark[8] equivalent
-    },
-    doubtCard: {
-      border: '1px solid #373A40', // dark[5] equivalent
-      transition: 'all 0.2s ease',
-      backgroundColor: '#1A1B1E', // dark[8] equivalent
-    },
-    voteButton: {
-      '&:hover': {
-        backgroundColor: '#373A40', // dark[5] equivalent
-      }
-    },
-    commentButton: {
-      backgroundColor: '#3B1B6C', // violet[9] equivalent
-      color: '#E4CCF7', // violet[1] equivalent
-    },
-    skeleton: {
-      // These styles will be applied via className
+  const handleDeleteDoubt = async (doubtId) => {
+    try {
+      await deleteDoc(doc(db, 'doubts', doubtId));
+      setDoubts(prev => prev.filter(d => d.id !== doubtId));
+      setDeleteConfirm(null);
+      notifications.show({ title: 'Success', message: 'Doubt deleted', color: 'green' });
+    } catch (err) {
+      console.error(err);
+      notifications.show({ title: 'Error', message: 'Failed to delete doubt', color: 'red' });
     }
   };
+
+  const LoadingSkeleton = () => (
+    <Paper shadow="sm" p="md" radius="md" mb="md" style={styles.doubtCard}>
+      <Group justify="space-between" mb="md">
+        <Group>
+          <Skeleton height={40} width={40} radius="xl" className={classes.skeleton} />
+          <div>
+            <Skeleton height={18} width={120} radius="md" mb={8} className={classes.skeleton} />
+            <Skeleton height={12} width={80} radius="md" className={classes.skeleton} />
+          </div>
+        </Group>
+        <Skeleton height={24} width={24} radius="md" className={classes.skeleton} />
+      </Group>
+      <Skeleton height={24} width="70%" radius="md" mb="sm" className={classes.skeleton} />
+      <Skeleton height={60} radius="md" mb="sm" className={classes.skeleton} />
+      <Group mb="md">
+        <Skeleton height={20} width={60} radius="sm" className={classes.skeleton} />
+        <Skeleton height={20} width={50} radius="sm" className={classes.skeleton} />
+      </Group>
+      <Divider my="xs" color="dark.4" />
+      <Group>
+        <Skeleton height={24} width={80} radius="md" className={classes.skeleton} />
+        <Skeleton height={24} width={100} radius="md" className={classes.skeleton} />
+      </Group>
+    </Paper>
+  );
 
   // Get unique categories for tabs
   const categories = ['all', ...new Set(doubts.map(doubt => doubt.category?.toLowerCase()).filter(Boolean))];
@@ -590,7 +488,7 @@ export default function Feed() {
                         }
                       },
                     }}
-                    withCheckIcon={false}
+                    withAsterisk={false}
                   />
                 </Group>
               </Group>
@@ -674,37 +572,29 @@ export default function Feed() {
                               <Menu shadow="md" width={200} position="bottom-end">
                                 <Menu.Target>
                                   <ActionIcon variant="subtle" size="sm" color="gray.5" radius="xl">
-                                    <IconDots style={{ width: rem(16), height: rem(16) }} />
+                                    <IconDotsVertical style={{ width: rem(16), height: rem(16) }} />
                                   </ActionIcon>
                                 </Menu.Target>
                                 <Menu.Dropdown bg="dark.7" borderColor="dark.4">
-                                  {/* Show edit and delete options only if user is the author and not anonymous */}
                                   {user && (doubt.userId === user.uid || doubt.postedBy === `/users/${user.uid}`) && !doubt.isAnonymous && (
                                     <>
                                       <Menu.Item 
                                         leftSection={<IconEdit style={{ width: rem(14), height: rem(14) }} color="#d0bfff" />}
                                         c="gray.0"
-                                        onClick={() => openEditModal(doubt)}
+                                        onClick={() => setEditingDoubt(doubt)}
                                       >
                                         Edit doubt
                                       </Menu.Item>
                                       <Menu.Item 
                                         leftSection={<IconTrash style={{ width: rem(14), height: rem(14) }} color="#ff6b6b" />}
                                         c="red.5"
-                                        onClick={() => setDeleteDoubtId(doubt.id)}
+                                        onClick={() => setDeleteConfirm(doubt.id)}
                                       >
                                         Delete doubt
                                       </Menu.Item>
                                       <Menu.Divider />
                                     </>
                                   )}
-                                  {/* <Menu.Item 
-                                    leftSection={<IconBookmark style={{ width: rem(14), height: rem(14) }} color="#d0bfff" />}
-                                    c="gray.0"
-                                    onClick={() => handleSavePost(doubt)}
-                                  >
-                                    Save post
-                                  </Menu.Item> */}
                                   <Menu.Item 
                                     leftSection={<IconShare style={{ width: rem(14), height: rem(14) }} color="#d0bfff" />}
                                     c="gray.0"
@@ -814,30 +704,15 @@ export default function Feed() {
                             </Group>
 
                             <Group>
-                              {/* <ActionIcon
-                                variant="subtle"
-                                color="violet"
-                                radius="xl"
-                                className={classes.voteButton}
-                                onClick={() => handleSavePost(doubt)}
-                              >
-                                <IconHeart style={{ width: rem(18), height: rem(18) }} />
-                              </ActionIcon> */}
-
                               <Button 
                                 variant="light"
                                 size="xs"
-                                color="violet.6"
-                                leftSection={<IconMessageCircle style={{ width: rem(14), height: rem(14) }} />}
-                                style={styles.commentButton}
-                                radius="xl"
-                                onClick={()=> navigate(`/feed/${doubt.id}`)}
+                                color="violet"
+                                onClick={() => navigate(`/doubt/${doubt.id}`)}
+                                leftSection={<IconMessage style={{ width: rem(16), height: rem(16) }} />}
                               >
-                                
-                                {
-                                doubt.commentCount || 0} Comments
+                                {doubt.commentCount || 0} Comments
                               </Button>
-                              {/* {console.log(doubt.commentCount)} */}
                             </Group>
                           </Flex>
                         </Card>
@@ -863,7 +738,7 @@ export default function Feed() {
                 </Text>
                 <Button 
                   variant="filled" 
-                  color="violet.7" 
+                  color="violet" 
                   leftSection={<IconMessage size={14} />}
                   radius="xl"
                   onClick={()=> {navigate('/postdoubt')}}
@@ -876,132 +751,58 @@ export default function Feed() {
         </div>
       </div>
       
-      {/* Edit Doubt Modal */}
-      <Modal
-        opened={editDoubtId !== null}
-        onClose={() => setEditDoubtId(null)}
-        title="Edit Doubt"
-        size="lg"
-        centered
-      >
-        <Stack spacing="md">
-          <TextInput
-            label="Title"
-            placeholder="Doubt title"
-            value={editTitle}
-            onChange={(event) => setEditTitle(event.currentTarget.value)}
-            required
+      {/* Simple Edit Modal */}
+      {editingDoubt && (
+        <Modal
+          opened={!!editingDoubt}
+          onClose={() => setEditingDoubt(null)}
+          title="Edit Doubt"
+          size="md"
+        >
+          <TextInput 
+            label="Title" 
+            defaultValue={editingDoubt.title} 
+            id="edit-title" 
+            mb="md"
           />
-          
-          <Textarea
-            label="Description"
-            placeholder="Describe your doubt in detail"
-            value={editDescription}
-            onChange={(event) => setEditDescription(event.currentTarget.value)}
-            minRows={4}
-            required
+          <Textarea 
+            label="Description" 
+            defaultValue={editingDoubt.description} 
+            id="edit-desc" 
+            minRows={3} 
+            mb="xl"
           />
-          
-          {editDoubtId && doubts.find(d => d.id === editDoubtId)?.type === 'image' && (
-            <div>
-              <Text size="sm" weight={500} mb="xs">
-                Image
-              </Text>
-              
-              {editImage ? (
-                <div style={{ position: 'relative', marginBottom: '10px' }}>
-                  <Image
-                    src={typeof editImage === 'string' ? editImage : URL.createObjectURL(editImage)}
-                    alt="Doubt image"
-                    radius="md"
-                    style={{ maxWidth: '100%', maxHeight: '200px' }}
-                  />
-                  <Button
-                    size="xs"
-                    color="red"
-                    variant="filled"
-                    style={{ position: 'absolute', top: 5, right: 5 }}
-                    onClick={() => setEditImage(null)}
-                  >
-                    <IconTrash size={14} />
-                  </Button>
-                </div>
-              ) : (
-                <FileButton
-                  onChange={setEditImage}
-                  accept="image/png,image/jpeg"
-                >
-                  {(props) => (
-                    <Button {...props} variant="outline" leftIcon={<IconPhoto size={14} />}>
-                      Upload Image
-                    </Button>
-                  )}
-                </FileButton>
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => setEditingDoubt(null)}>Cancel</Button>
+            <Button 
+              color="violet" 
+              onClick={() => handleEditDoubt(
+                editingDoubt.id, 
+                document.getElementById('edit-title').value, 
+                document.getElementById('edit-desc').value
               )}
-            </div>
-          )}
-          
-          {uploadingImage && (
-            <Progress value={uploadProgress} size="sm" color="violet" />
-          )}
-          
-          <Group position="right" mt="md">
-            <Button variant="outline" onClick={() => setEditDoubtId(null)}>
-              Cancel
-            </Button>
-            <Button color="violet" onClick={handleEditDoubt} loading={uploadingImage}>
-              Save Changes
+            >
+              Save
             </Button>
           </Group>
-        </Stack>
-      </Modal>
+        </Modal>
+      )}
       
-      {/* Delete Confirmation Modal */}
-      <Modal
-        opened={deleteDoubtId !== null}
-        onClose={() => setDeleteDoubtId(null)}
-        title="Delete Doubt"
-        size="md"
-        centered
-      >
-        <Text mb="lg">
-          Are you sure you want to delete this doubt? This action cannot be undone.
-        </Text>
-        <Group position="right">
-          <Button variant="outline" onClick={() => setDeleteDoubtId(null)}>
-            Cancel
-          </Button>
-          <Button color="red" onClick={handleDeleteDoubt}>
-            Delete
-          </Button>
-        </Group>
-      </Modal>
+      {/* Simple Delete Confirmation */}
+      {deleteConfirm && (
+        <Modal
+          opened={!!deleteConfirm}
+          onClose={() => setDeleteConfirm(null)}
+          title="Delete Doubt"
+          size="sm"
+        >
+          <Text mb="lg">Are you sure you want to delete this doubt?</Text>
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => setDeleteConfirm(null)}>Cancel</Button>
+            <Button color="red" onClick={() => handleDeleteDoubt(deleteConfirm)}>Delete</Button>
+          </Group>
+        </Modal>
+      )}
     </MantineProvider>
   );
 }
-
-const LoadingSkeleton = () => (
-  <Paper shadow="sm" p="md" radius="md" mb="md" style={styles.doubtCard}>
-    <Group justify="space-between" mb="md">
-      <Group>
-        <Skeleton height={40} width={40} radius="xl" className={classes.skeleton} />
-        <div>
-          <Skeleton height={18} width={120} radius="md" mb={8} className={classes.skeleton} />
-          <Skeleton height={12} width={80} radius="md" className={classes.skeleton} />
-        </div>
-      </Group>
-      <Skeleton height={24} width={24} radius="md" className={classes.skeleton} />
-    </Group>
-    <Skeleton height={24} width="70%" radius="md" mb="sm" className={classes.skeleton} />
-    <Skeleton height={60} radius="md" mb="sm" className={classes.skeleton} />
-    <Group mb="md">
-      <Skeleton height={20} width={60} radius="sm" className={classes.skeleton} />
-      <Skeleton height={20} width={50} radius="sm" className={classes.skeleton} />
-    </Group>
-    <Divider my="xs" color="dark.4" />
-    <Group>
-      <Skeleton height={24} width={80} radius="md" className={classes.skeleton} />
-      <Skeleton height={24} width={100} radius="md" className={classes.skeleton} />
-    </Group>
-  </Paper>
-);

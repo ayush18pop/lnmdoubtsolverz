@@ -1,37 +1,61 @@
-/* Base styles - Force dark mode */
+/* Base styles */
 :root {
-  color-scheme: dark;
+  color-scheme: light dark;
 }
 
-body {
-  @apply bg-app-dark text-app-light;
+/* Light mode */
+@media (prefers-color-scheme: light) {
+  body {
+    @apply bg-white text-gray-900;
+  }
+  
+  .navbar {
+    @apply bg-gray-100 border-r border-gray-200;
+  }
+  
+  .card {
+    @apply bg-white border border-gray-200;
+  }
+  
+  input, textarea {
+    @apply bg-white border-gray-300 text-gray-900;
+  }
+  
+  a {
+    @apply text-primary hover:text-primary-dark;
+  }
 }
 
-/* Component styles */
-.navbar {
-  @apply bg-dark-darker border-r border-gray-800;
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  body {
+    @apply bg-app-dark text-app-light;
+  }
+
+  .navbar {
+    @apply bg-dark-darker border-r border-gray-800;
+  }
+
+  .card {
+    @apply bg-dark border border-gray-800;
+  }
+
+  input, textarea {
+    @apply bg-dark-light border-gray-700 text-app-light;
+  }
+
+  a {
+    @apply text-primary hover:text-primary-light;
+  }
 }
 
-.card {
-  @apply bg-dark border border-gray-800;
-}
-
+/* Common styles that don't change with theme */
 .button-primary {
   @apply bg-primary hover:bg-primary-dark text-white;
 }
 
 .button-secondary {
   @apply bg-dark-light hover:bg-dark text-app-light;
-}
-
-/* Form elements */
-input, textarea {
-  @apply bg-dark-light border-gray-700 text-app-light;
-}
-
-/* Links */
-a {
-  @apply text-primary hover:text-primary-light;
 }
 
 /* Headings */

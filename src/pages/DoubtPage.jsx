@@ -28,7 +28,7 @@ import {
   Modal,
   TextInput
 } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
+import { useMediaQuery, useDisclosure } from '@mantine/hooks';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
@@ -84,13 +84,10 @@ function DoubtPage() {
   const commentInputRef = useRef(null);
   const theme = useMantineTheme();
   const navigate = useNavigate();
-  
-  // Edit doubt state
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editTitle, setEditTitle] = useState('');
-  const [editDescription, setEditDescription] = useState('');
-  const [editImage, setEditImage] = useState(null);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+
+  // Edit and delete states
+  const [editingDoubt, setEditingDoubt] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   // Function to fetch the doubt details
   const fetchDoubt = async () => {
@@ -157,18 +154,18 @@ function DoubtPage() {
   // Function to upload an image to Cloudinary
   const uploadImage = async (file) => {
     if (!file) return null;
-    
+
     setUploadingImage(true);
     setUploadProgress(0);
-    
+
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', UPLOAD_PRESET);
-    
+
     try {
       // Simulating progress since Cloudinary's direct upload doesn't provide progress events
       const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
+        setUploadProgress((prev) => {
           if (prev >= 90) {
             clearInterval(progressInterval);
             return prev;
@@ -176,22 +173,22 @@ function DoubtPage() {
           return prev + 10;
         });
       }, 300);
-      
+
       const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, {
         method: 'POST',
-        body: formData
+        body: formData,
       });
-      
+
       clearInterval(progressInterval);
-      
+
       if (!response.ok) {
         throw new Error('Upload failed');
       }
-      
+
       const data = await response.json();
       setUploadProgress(100);
       setUploadingImage(false);
-      
+
       return data.secure_url;
     } catch (error) {
       console.error('Error uploading image to Cloudinary:', error);
@@ -203,7 +200,7 @@ function DoubtPage() {
   // Function to post a new comment
   const handlePostComment = async () => {
     if (!newComment.trim() && !commentImage) return; // ignore empty comments with no image
-    
+
     if (!user && !isAnonymous) {
       notifications.show({
         title: 'Authentication Required',
@@ -212,17 +209,17 @@ function DoubtPage() {
       });
       return;
     }
-    
+
     try {
       setLoading(true);
       const doubtRef = doc(db, 'doubts', id);
       const commentsRef = collection(db, 'doubts', id, 'comments');
-      
+
       let imageURL = null;
       if (commentImage) {
         imageURL = await uploadImage(commentImage);
       }
-      
+
       const commentData = {
         text: newComment.trim(),
         author: isAnonymous ? 'Anonymous' : user?.displayName || user?.email || 'User',
@@ -231,21 +228,21 @@ function DoubtPage() {
         isAnonymous,
         timestamp: serverTimestamp(),
       };
-      
+
       if (imageURL) {
         commentData.imageURL = imageURL;
       }
-      
+
       await addDoc(commentsRef, commentData);
       await updateDoc(doubtRef, {
-        commentCount: increment(1)
+        commentCount: increment(1),
       });
-      
+
       setNewComment('');
       setCommentImage(null);
       setUploadProgress(0);
       fetchComments();
-      
+
       notifications.show({
         title: 'Success',
         message: 'Comment posted successfully',
@@ -263,9 +260,7 @@ function DoubtPage() {
     }
   };
 
-  const handleDeleteComment = async ()=>{
-
-  }
+  const handleDeleteComment = async () => {};
 
   // Function to handle image selection for comment
   const handleImageSelect = (file) => {
@@ -273,7 +268,7 @@ function DoubtPage() {
       // Validate file type and size
       const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
       const maxSize = 5 * 1024 * 1024; // 5MB
-      
+
       if (!validTypes.includes(file.type)) {
         notifications.show({
           title: 'Invalid File',
@@ -282,7 +277,7 @@ function DoubtPage() {
         });
         return;
       }
-      
+
       if (file.size > maxSize) {
         notifications.show({
           title: 'File Too Large',
@@ -291,7 +286,7 @@ function DoubtPage() {
         });
         return;
       }
-      
+
       setCommentImage(file);
     }
   };
@@ -306,7 +301,7 @@ function DoubtPage() {
       });
       return;
     }
-  
+
     try {
       const doubtRef = doc(db, 'doubts', id);
       const currentUpvoted = doubt.upvotedBy || [];
@@ -314,60 +309,58 @@ function DoubtPage() {
       let newUpvoted = [...currentUpvoted];
       let newDownvoted = [...currentDownvoted];
       let newTotalVotes = doubt.totalVotes || 0;
-  
+
       if (voteType === 'up') {
         //uncomment this later
         const hasUpvoted = currentUpvoted.includes(user.uid);
         const hasDownvoted = currentDownvoted.includes(user.uid);
-  
+
         if (hasUpvoted) {
           // Remove upvote
-          newUpvoted = currentUpvoted.filter(uid => uid !== user.uid);
+          newUpvoted = currentUpvoted.filter((uid) => uid !== user.uid);
           newTotalVotes -= 1;
         } else {
-        // Add upvote and remove downvote if exists
-        newUpvoted = [...currentUpvoted, user.uid];
+          // Add upvote and remove downvote if exists
+          newUpvoted = [...currentUpvoted, user.uid];
           if (hasDownvoted) {
-            newDownvoted = currentDownvoted.filter(uid => uid !== user.uid);
+            newDownvoted = currentDownvoted.filter((uid) => uid !== user.uid);
             newTotalVotes += 2; // Removing a downvote (+1) and adding an upvote (+1)
           } else {
-        newTotalVotes += 1;
+            newTotalVotes += 1;
           }
-        }     
-       } else if (voteType === 'down') {
+        }
+      } else if (voteType === 'down') {
         //testing purposes: removing the one downvote logic
         // newDownvoted = [...currentDownvoted, user.uid];
         // newTotalVotes -= 1;
 
-
-
         // //remove this later
         const hasDownvoted = currentDownvoted.includes(user.uid);
         const hasUpvoted = currentUpvoted.includes(user.uid);
-  
+
         if (hasDownvoted) {
           // Remove downvote
-          newDownvoted = currentDownvoted.filter(uid => uid !== user.uid);
+          newDownvoted = currentDownvoted.filter((uid) => uid !== user.uid);
           newTotalVotes += 1;
         } else {
           // Add downvote and remove upvote if exists
           newDownvoted = [...currentDownvoted, user.uid];
           if (hasUpvoted) {
-            newUpvoted = currentUpvoted.filter(uid => uid !== user.uid);
+            newUpvoted = currentUpvoted.filter((uid) => uid !== user.uid);
             newTotalVotes -= 2; // Removing an upvote (-1) and adding a downvote (-1)
           } else {
             newTotalVotes -= 1;
           }
         }
       }
-  
+
       // Update the doubt document in Firestore
       await updateDoc(doubtRef, {
         upvotedBy: newUpvoted,
         downvotedBy: newDownvoted,
         totalVotes: newTotalVotes,
       });
-  
+
       // Update local state with new values
       setDoubt({
         ...doubt,
@@ -408,7 +401,7 @@ function DoubtPage() {
       });
       return;
     }
-    
+
     try {
       // Implement your save logic here
       notifications.show({
@@ -428,43 +421,22 @@ function DoubtPage() {
   };
 
   // Function to handle edit doubt
-  const handleEditDoubt = async () => {
+  const handleEditDoubt = async (newTitle, newDescription) => {
     try {
-      const doubtRef = doc(db, 'doubts', id);
-      
-      // Prepare the update data
-      const updateData = {
-        title: editTitle,
-        description: editDescription,
-        updatedAt: serverTimestamp()
-      };
-      
-      // If there's a new image, upload it
-      if (editImage && typeof editImage !== 'string') {
-        setUploadingImage(true);
-        setUploadProgress(0);
-        
-        const imageUrl = await uploadImage(editImage);
-        if (imageUrl) {
-          updateData.imageURL = imageUrl;
-        }
-        
-        setUploadingImage(false);
-      }
-      
-      // Update the document
-      await updateDoc(doubtRef, updateData);
-      
-      // Update the local state
-      setDoubt(prev => ({
+      await updateDoc(doc(db, 'doubts', id), {
+        title: newTitle,
+        description: newDescription,
+        updatedAt: serverTimestamp(),
+      });
+
+      // Update local state
+      setDoubt((prev) => ({
         ...prev,
-        title: editTitle,
-        description: editDescription,
-        imageURL: editImage && typeof editImage !== 'string' ? updateData.imageURL : prev.imageURL
+        title: newTitle,
+        description: newDescription,
       }));
-      
-      // Close the modal and show success notification
-      setEditModalOpen(false);
+
+      setEditingDoubt(null);
       notifications.show({
         title: 'Success',
         message: 'Doubt updated successfully!',
@@ -474,7 +446,7 @@ function DoubtPage() {
       console.error('Error updating doubt:', error);
       notifications.show({
         title: 'Error',
-        message: 'Failed to update doubt. Please try again.',
+        message: 'Failed to update doubt',
         color: 'red',
       });
     }
@@ -483,23 +455,9 @@ function DoubtPage() {
   // Function to handle delete doubt
   const handleDeleteDoubt = async () => {
     try {
-      // Delete the comments subcollection first
-      const commentsRef = collection(db, 'doubts', id, 'comments');
-      const commentsSnapshot = await getDocs(commentsRef);
-      
-      const deletePromises = commentsSnapshot.docs.map(commentDoc => 
-        deleteDoc(doc(db, 'doubts', id, 'comments', commentDoc.id))
-      );
-      
-      await Promise.all(deletePromises);
-      
-      // Now delete the doubt document
       await deleteDoc(doc(db, 'doubts', id));
-      
-      // Navigate back to feed
+      setDeleteConfirm(false);
       navigate('/feed');
-      
-      // Show success notification
       notifications.show({
         title: 'Success',
         message: 'Doubt deleted successfully!',
@@ -509,20 +467,12 @@ function DoubtPage() {
       console.error('Error deleting doubt:', error);
       notifications.show({
         title: 'Error',
-        message: 'Failed to delete doubt. Please try again.',
+        message: 'Failed to delete doubt',
         color: 'red',
       });
     }
   };
 
-  // Open edit modal with current doubt data
-  const openEditModal = () => {
-    setEditTitle(doubt.title);
-    setEditDescription(doubt.description);
-    setEditImage(doubt.imageURL);
-    setEditModalOpen(true);
-  };
-  
   // Fetch doubt and comments when component mounts or id changes
   useEffect(() => {
     if (id) {
@@ -540,109 +490,97 @@ function DoubtPage() {
 
   return (
     <MantineProvider theme={{ colorScheme: 'dark' }}>
-      
-      <div  style={{ backgroundColor: '#1A1B1E', minHeight: '100vh', color: '#C1C2C5' }}>
-        <div >
+      <div style={{ backgroundColor: '#1A1B1E', minHeight: '100vh', color: '#C1C2C5' }}>
+        <div>
           <Navbar />
         </div>
-        
-        <div className='flex-1 md:ml-[250px] p-4'>
-          <Container size="lg" p="md" >
+
+        <div className="flex-1 md:ml-[250px] p-4">
+          <Container size="lg" p="md">
             {loading && !doubt ? (
-              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '60vh',
+                }}
+              >
                 <Loader size="xl" variant="dots" color="violet" />
               </div>
             ) : doubt ? (
               <>
                 {/* Back Button */}
-                <Link  to="/feed" style={{ textDecoration: 'none', display: 'inline-block', marginBottom: '16px' }}>
-                  <Group spacing="xs" >
+                <Link to="/feed" style={{ textDecoration: 'none', display: 'inline-block', marginBottom: '16px' }}>
+                  <Group spacing="xs">
                     <IconArrowBack size={16} />
-                    <Text size="sm" color="dimmed">Back to all doubts</Text>
+                    <Text size="sm" color="dimmed">
+                      Back to all doubts
+                    </Text>
                   </Group>
                 </Link>
-                
+
                 <Card shadow="sm" radius="md" withBorder p="lg" style={{ backgroundColor: '#25262B', border: '1px solid #373A40', marginBottom: '24px' }}>
                   {/* Doubt Header with Author Info */}
                   <Group position="apart" mb="xs">
                     <Group>
-                      <Avatar 
-                        src={doubt.authorPhotoURL} 
-                        radius="xl" 
-                        color="violet"
-                        alt={doubt.authorName || 'User'}
-                      >
+                      <Avatar src={doubt.authorPhotoURL} radius="xl" color="violet" alt={doubt.authorName || 'User'}>
                         {doubt.authorName?.charAt(0) || 'U'}
                       </Avatar>
                       <div>
-                        <Text weight={600} size="sm" color='white' className='flex-1 flex items-start'>
+                        <Text weight={600} size="sm" color="white" className="flex-1 flex items-start">
                           {doubt.authorName || doubt.author || 'Anonymous'}
                         </Text>
                         <Group spacing="xs">
-                          <IconCalendar size={14} color='gray' className='flex-1 flex items-start'/>
-                          <Text size="xs" color="gray" className='flex items-start p-0'>
+                          <IconCalendar size={14} color="gray" className="flex-1 flex items-start" />
+                          <Text size="xs" color="gray" className="flex items-start p-0">
                             {doubt.createdAt ? format(doubt.createdAt, 'PPp') : 'Recently'}
                           </Text>
                         </Group>
                       </div>
                     </Group>
-                    
-                    <Group>
-                      {doubt.subject && (
-                        <Badge color="violet" variant="light" mr="md">
-                          {doubt.subject}
-                        </Badge>
-                      )}
-                      
-                      {/* Three-dot menu for edit/delete - only visible to author */}
-                      {user && (doubt.userId === user.uid || doubt.postedBy === `/users/${user.uid}`) && !doubt.isAnonymous && (
-                        <Menu position="bottom-end" shadow="md">
-                          <Menu.Target>
-                            <ActionIcon variant="subtle">
-                              <IconDotsVertical size={18} />
-                            </ActionIcon>
-                          </Menu.Target>
-                          <Menu.Dropdown>
-                            <Menu.Item 
-                              icon={<IconEdit size={14} />} 
-                              onClick={openEditModal}
-                            >
-                              Edit Doubt
-                            </Menu.Item>
-                            <Menu.Item 
-                              icon={<IconTrash size={14} />} 
-                              color="red"
-                              onClick={() => setDeleteModalOpen(true)}
-                            >
-                              Delete Doubt
-                            </Menu.Item>
-                          </Menu.Dropdown>
-                        </Menu>
-                      )}
-                    </Group>
+
+                    {doubt.subject && (
+                      <Badge color="violet" variant="light">
+                        {doubt.subject}
+                      </Badge>
+                    )}
+
+                    {/* Edit/Delete menu for author */}
+                    {user && (doubt.userId === user.uid || doubt.postedBy === `/users/${user.uid}`) && !doubt.isAnonymous && (
+                      <Menu position="bottom-end" shadow="md">
+                        <Menu.Target>
+                          <ActionIcon variant="subtle">
+                            <IconDotsVertical size={18} />
+                          </ActionIcon>
+                        </Menu.Target>
+                        <Menu.Dropdown>
+                          <Menu.Item icon={<IconEdit size={14} />} onClick={() => setEditingDoubt(doubt)}>
+                            Edit Doubt
+                          </Menu.Item>
+                          <Menu.Item icon={<IconTrash size={14} />} color="red" onClick={() => setDeleteConfirm(true)}>
+                            Delete Doubt
+                          </Menu.Item>
+                        </Menu.Dropdown>
+                      </Menu>
+                    )}
                   </Group>
-                  
+
                   {/* Doubt Title and Content */}
-                  <Title className='flex-1 flex items-start' order={2} style={{ color: '#F8F9FA', fontWeight: 700, marginBottom: '16px' }}>
+                  <Title className="flex-1 flex items-start" order={2} style={{ color: '#F8F9FA', fontWeight: 700, marginBottom: '16px' }}>
                     {doubt.title}
                   </Title>
-                  
-                  <Text className='flex-1 flex items-start' size="md" color='white' style={{ whiteSpace: 'pre-wrap', marginBottom: '20px', lineHeight: 1.6 }}>
+
+                  <Text className="flex-1 flex items-start" size="md" color="white" style={{ whiteSpace: 'pre-wrap', marginBottom: '20px', lineHeight: 1.6 }}>
                     {doubt.description}
                   </Text>
-                  
+
                   {doubt.imageURL && (
                     <div style={{ marginBottom: '20px' }}>
-                      <Image 
-                        src={doubt.imageURL} 
-                        alt="Doubt attachment" 
-                        radius="md" 
-                        style={{ maxWidth: '100%', cursor: 'pointer' }} 
-                        onClick={() => window.open(doubt.imageURL, '_blank')}
-                      />
+                      <Image src={doubt.imageURL} alt="Doubt image" radius="md" style={{ maxWidth: '100%' }} onClick={() => window.open(doubt.imageURL, '_blank')} sx={{ cursor: 'pointer' }} />
                     </div>
                   )}
-                  
+
                   {/* Action Bar */}
                   <Group position="apart" mt="lg">
                     <Group spacing="xs">
@@ -657,7 +595,7 @@ function DoubtPage() {
                           <IconArrowUp size={18} />
                         </ActionIcon>
                       </Tooltip>
-                      <Text size="sm" weight={600} color='white'>
+                      <Text size="sm" weight={600} color="white">
                         {doubt.totalVotes || 0}
                       </Text>
                       <Tooltip label={doubt.downvotedBy?.includes(user?.uid) ? "Remove downvote" : "Downvote"}>
@@ -672,19 +610,19 @@ function DoubtPage() {
                         </ActionIcon>
                       </Tooltip>
                     </Group>
-                    
+
                     <Group spacing="xs">
                       <Group spacing="xs">
-                        <IconMessageCircle size={18}  color='white'/>
-                        <Text size="sm" color='white '>{doubt.commentCount || comments.length}</Text>
+                        <IconMessageCircle size={18} color="white" />
+                        <Text size="sm" color="white">{doubt.commentCount || comments.length}</Text>
                       </Group>
-                      
+
                       <Tooltip label="Copy link">
                         <ActionIcon variant="subtle" onClick={handleShare} color="blue" radius="xl" size="lg">
                           <IconShare size={18} />
                         </ActionIcon>
                       </Tooltip>
-                      
+
                       {/* <Tooltip label="Save doubt">
                         <ActionIcon variant="subtle" onClick={handleSavePost} color="yellow" radius="xl" size="lg">
                           <IconBookmark size={18} />
@@ -693,24 +631,18 @@ function DoubtPage() {
                     </Group>
                   </Group>
                 </Card>
-                
+
                 {/* Comments Section */}
                 <div style={{ marginBottom: '24px' }}>
                   <Group position="apart" mb="md">
                     <Title order={3} style={{ color: '#F8F9FA' }}>
                       Comments ({doubt.commentCount || comments.length})
                     </Title>
-                    <Button 
-                      variant="subtle" 
-                      color="violet" 
-                      compact 
-                      onClick={focusCommentInput}
-                      leftIcon={<IconMessageCircle size={16} />}
-                    >
+                    <Button variant="subtle" color="violet" size="sm" onClick={focusCommentInput} leftSection={<IconMessageCircle size={16} />}>
                       Add Comment
                     </Button>
                   </Group>
-                  
+
                   {/* Post Comment Form */}
                   <Card shadow="sm" radius="md" withBorder p="md" style={{ backgroundColor: '#25262B', marginBottom: '24px' }}>
                     <Stack spacing="xs">
@@ -723,83 +655,54 @@ function DoubtPage() {
                         minRows={2}
                         maxRows={6}
                       />
-                      
+
                       {commentImage && (
                         <div style={{ position: 'relative' }}>
-                          <Image 
-                            src={URL.createObjectURL(commentImage)} 
-                            alt="Comment image preview" 
-                            radius="md"
-                            height={150} 
-                            fit="contain"
-                          />
-                          <ActionIcon 
-                            color="red" 
-                            variant="filled" 
-                            radius="xl" 
-                            size="sm"
-                            style={{ position: 'absolute', top: 5, right: 5 }}
-                            onClick={() => setCommentImage(null)}
-                          >
+                          <Image src={URL.createObjectURL(commentImage)} alt="Comment image preview" radius="md" height={150} fit="contain" />
+                          <ActionIcon color="red" variant="filled" radius="xl" size="sm" style={{ position: 'absolute', top: 5, right: 5 }} onClick={() => setCommentImage(null)}>
                             &times;
                           </ActionIcon>
                         </div>
                       )}
-                      
+
                       {uploadingImage && (
-                        <Progress 
-                          value={uploadProgress} 
-                          color="violet" 
-                          size="sm" 
-                          label={`${Math.round(uploadProgress)}%`} 
-                          striped 
-                          animate
-                        />
+                        <Progress value={uploadProgress} color="violet" size="sm" label={`${Math.round(uploadProgress)}%`} striped animate />
                       )}
-                      
+
                       <Group position="apart">
                         <Group spacing="xs">
                           <FileButton onChange={handleImageSelect} accept="image/png,image/jpeg,image/gif,image/webp">
                             {(props) => (
                               <Tooltip label="Attach image">
-                                <ActionIcon variant="subtle" color="gray" size="lg" {...props}>
+                                <ActionIcon {...props} variant="subtle" color="blue">
                                   <IconPhoto size={18} />
                                 </ActionIcon>
                               </Tooltip>
                             )}
                           </FileButton>
-                          
+
                           <Group spacing="xs">
                             <Switch
                               checked={isAnonymous}
                               onChange={(event) => setIsAnonymous(event.currentTarget.checked)}
                               color="violet"
                               size="sm"
-                              thumbIcon={
-                                isAnonymous ? (
-                                  <IconUserOff size={12} stroke={2.5} />
-                                ) : (
-                                  <IconUser size={12} stroke={2.5} />
-                                )
+                              label={
+                                <Text size="sm" color="white">
+                                  Post anonymously
+                                </Text>
                               }
                             />
-                            <Text size="sm" color='white'>Post anonymously</Text>
                           </Group>
                         </Group>
-                        
-                        <Button 
-                          onClick={handlePostComment} 
-                          color="violet"
-                          disabled={(!newComment.trim() && !commentImage) || uploadingImage}
-                          leftIcon={<IconMessageCircle size={16} />}
-                          
-                        >
+
+                        <Button onClick={handlePostComment} color="violet" disabled={(!newComment.trim() && !commentImage) || uploadingImage} leftSection={<IconMessageCircle size={16} />}>
                           Post Comment
                         </Button>
                       </Group>
                     </Stack>
                   </Card>
-                  
+
                   {/* Comments List */}
                   <ScrollArea style={{ height: '100%' }} offsetScrollbars>
                     <Stack spacing="md">
@@ -813,26 +716,21 @@ function DoubtPage() {
                                     <IconUserOff size={14} />
                                   </ThemeIcon>
                                 ) : (
-                                  <Avatar 
-                                    src={comment.authorPhotoURL} 
-                                    radius="xl" 
-                                    color="violet" 
-                                    size="md"
-                                  >
+                                  <Avatar src={comment.authorPhotoURL} radius="xl" color="violet" size="md">
                                     {comment.author?.charAt(0) || 'U'}
                                   </Avatar>
                                 )}
                                 <div>
-                                  <Text weight={500} size="sm" color='white' className='flex-1 flex items-start'>
+                                  <Text weight={500} size="sm" color="white" className="flex-1 flex items-start">
                                     {comment.author}
                                   </Text>
-                                  <Text size="xs" color="gray" className='flex-1 flex items-start'>
+                                  <Text size="xs" color="gray" className="flex-1 flex items-start">
                                     {comment.timestamp ? formatDistanceToNow(comment.timestamp, { addSuffix: true }) : 'Just now'}
                                   </Text>
                                 </div>
                               </Group>
-                              
-                            {/* TODO : IMPLEMENT handleEdit and handleDelete first */}
+
+                              {/* TODO : IMPLEMENT handleEdit and handleDelete first */}
 
                               {/* {user?.uid === comment.authorId && !comment.isAnonymous && (
                                 <Menu position="bottom-end">
@@ -848,11 +746,11 @@ function DoubtPage() {
                                 </Menu>
                               )} */}
                             </Group>
-                            
-                            <Text size="sm" color='white' className='flex-1 flex items-start mx-5' style={{ whiteSpace: 'pre-wrap', marginTop: '10px', marginBottom: comment.imageURL ? '10px' : '0' }}>
+
+                            <Text size="sm" color="white" className="flex-1 flex items-start mx-5" style={{ whiteSpace: 'pre-wrap', marginTop: '10px', marginBottom: comment.imageURL ? '10px' : '0' }}>
                               {comment.text}
                             </Text>
-                            
+
                             {comment.imageURL && (
                               <Image
                                 src={comment.imageURL}
@@ -867,13 +765,8 @@ function DoubtPage() {
                         ))
                       ) : (
                         <Card shadow="sm" radius="md" withBorder p="md" style={{ backgroundColor: '#25262B', textAlign: 'center' }}>
-                          <Text color='white' size="md" mb="md">No comments yet</Text>
-                          <Button 
-                            variant="light" 
-                            color="violet" 
-                            compact 
-                            onClick={focusCommentInput}
-                          >
+                          <Text color="white" size="md" mb="md">No comments yet</Text>
+                          <Button variant="light" color="violet" size="sm" onClick={focusCommentInput}>
                             Be the first to comment
                           </Button>
                         </Card>
@@ -898,107 +791,31 @@ function DoubtPage() {
           </Container>
         </div>
       </div>
-      
-      {/* Edit Doubt Modal */}
-      <Modal
-        opened={editModalOpen}
-        onClose={() => setEditModalOpen(false)}
-        title="Edit Doubt"
-        size="lg"
-        centered
-      >
-        <Stack spacing="md">
-          <TextInput
-            label="Title"
-            placeholder="Doubt title"
-            value={editTitle}
-            onChange={(event) => setEditTitle(event.currentTarget.value)}
-            required
-          />
-          
-          <Textarea
-            label="Description"
-            placeholder="Describe your doubt in detail"
-            value={editDescription}
-            onChange={(event) => setEditDescription(event.currentTarget.value)}
-            minRows={4}
-            required
-          />
-          
-          {doubt && doubt.type === 'image' && (
-            <div>
-              <Text size="sm" weight={500} mb="xs">
-                Image
-              </Text>
-              
-              {editImage ? (
-                <div style={{ position: 'relative', marginBottom: '10px' }}>
-                  <Image
-                    src={typeof editImage === 'string' ? editImage : URL.createObjectURL(editImage)}
-                    alt="Doubt image"
-                    radius="md"
-                    style={{ maxWidth: '100%', maxHeight: '200px' }}
-                  />
-                  <Button
-                    size="xs"
-                    color="red"
-                    variant="filled"
-                    style={{ position: 'absolute', top: 5, right: 5 }}
-                    onClick={() => setEditImage(null)}
-                  >
-                    <IconTrash size={14} />
-                  </Button>
-                </div>
-              ) : (
-                <FileButton
-                  onChange={setEditImage}
-                  accept="image/png,image/jpeg"
-                >
-                  {(props) => (
-                    <Button {...props} variant="outline" leftIcon={<IconPhoto size={14} />}>
-                      Upload Image
-                    </Button>
-                  )}
-                </FileButton>
-              )}
-            </div>
-          )}
-          
-          {uploadingImage && (
-            <Progress value={uploadProgress} size="sm" color="violet" />
-          )}
-          
-          <Group position="right" mt="md">
-            <Button variant="outline" onClick={() => setEditModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button color="violet" onClick={handleEditDoubt} loading={uploadingImage}>
-              Save Changes
+
+      {/* Edit Modal */}
+      {editingDoubt && (
+        <Modal opened={!!editingDoubt} onClose={() => setEditingDoubt(null)} title="Edit Doubt" size="md">
+          <TextInput label="Title" defaultValue={editingDoubt.title} id="edit-title" mb="md" />
+          <Textarea label="Description" defaultValue={editingDoubt.description} id="edit-desc" minRows={3} mb="xl" />
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => setEditingDoubt(null)}>Cancel</Button>
+            <Button color="violet" onClick={() => handleEditDoubt(document.getElementById('edit-title').value, document.getElementById('edit-desc').value)}>
+              Save
             </Button>
           </Group>
-        </Stack>
-      </Modal>
-      
-      {/* Delete Confirmation Modal */}
-      <Modal
-        opened={deleteModalOpen}
-        onClose={() => setDeleteModalOpen(false)}
-        title="Delete Doubt"
-        size="md"
-        centered
-      >
-        <Text mb="lg">
-          Are you sure you want to delete this doubt? This action cannot be undone.
-        </Text>
-        <Group position="right">
-          <Button variant="outline" onClick={() => setDeleteModalOpen(false)}>
-            Cancel
-          </Button>
-          <Button color="red" onClick={handleDeleteDoubt}>
-            Delete
-          </Button>
-        </Group>
-      </Modal>
+        </Modal>
+      )}
+
+      {/* Delete Confirmation */}
+      {deleteConfirm && (
+        <Modal opened={deleteConfirm} onClose={() => setDeleteConfirm(false)} title="Delete Doubt" size="sm">
+          <Text mb="lg">Are you sure you want to delete this doubt?</Text>
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => setDeleteConfirm(false)}>Cancel</Button>
+            <Button color="red" onClick={handleDeleteDoubt}>Delete</Button>
+          </Group>
+        </Modal>
+      )}
     </MantineProvider>
   );
 }
