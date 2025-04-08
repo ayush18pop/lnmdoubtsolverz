@@ -7,6 +7,14 @@
   --bg-card: #1a1a1f;
   --text-primary: #ffffff;
   --text-secondary: #a0a0a0;
+  color-scheme: dark;
+}
+
+/* Force dark mode for all browsers */
+body, html {
+  background-color: var(--bg-dark) !important;
+  color: var(--text-primary) !important;
+  color-scheme: dark !important;
 }
 
 .landingWrapper {
@@ -351,6 +359,15 @@
   border: 1px solid rgba(123, 93, 249, 0.1);
 }
 
+/* Auth Modal specific styles */
+.authModal {
+  background-color: #1a1a1f !important;
+}
+
+.authTitle {
+  color: var(--text-primary) !important;
+}
+
 /* Sticky CTA for mobile */
 .stickyCta {
   position: fixed;
@@ -363,6 +380,19 @@
   display: none;
 }
 
+/* Highlighted text */
+.highlightText, .anonymousHighlight {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* Anonymous demo styles */
+.anonymousDemo, .spotlightCard, .benefitCard, .demoEditor {
+  background-color: #1a1a1f !important;
+  color: var(--text-primary) !important;
+}
+
+/* Mobile styles */
 @media (max-width: 768px) {
   .stickyCta {
     display: block;
