@@ -1,7 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import Navbar from '../components/Navbar';
-import { MantineProvider, Text, Button, Select, TextInput, Group, Stack, Card, Badge, Tabs, Loader, Modal, FileInput, Textarea, Grid, Container, Box, Title, Paper, useMantineTheme } from '@mantine/core';
+import { 
+  MantineProvider, 
+  Text, 
+  Button, 
+  Select, 
+  TextInput, 
+  Group, 
+  Stack, 
+  Card, 
+  Badge, 
+  Tabs, 
+  Loader, 
+  Modal, 
+  FileInput, 
+  Textarea, 
+  Grid, 
+  Container, 
+  Box, 
+  Title, 
+  Paper, 
+  useMantineTheme 
+} from '@mantine/core';
 import { Dropzone } from '@mantine/dropzone';
 import { notifications } from '@mantine/notifications';
 import { collection, addDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
@@ -501,570 +522,525 @@ function Resources() {
   const [filtersExpanded, setFiltersExpanded] = useState(false);
 
   return (
-    <MantineProvider theme={{ 
-      colorScheme: 'dark',
-      components: {
-        Card: {
-          styles: (theme) => ({
-            root: { 
-              backgroundColor: theme.colors.dark[7],
-              borderColor: theme.colors.dark[5],
-              color: theme.colors.gray[0]
-            }
-          })
-        },
-        CardSection: {
-          styles: (theme) => ({
-            root: { 
-              backgroundColor: theme.colors.dark[8],
-              borderBottomColor: theme.colors.dark[5]
-            }
-          })
-        },
-        Paper: {
-          styles: (theme) => ({
-            root: { 
-              backgroundColor: theme.colors.dark[7],
-              color: theme.colors.gray[0]
-            }
-          })
-        },
-        Text: {
-          styles: (theme) => ({
-            root: {
-              color: theme.colors.gray[0]
-            }
-          })
-        },
-        Title: {
-          styles: (theme) => ({
-            root: {
-              color: theme.colors.gray[0]
-            }
-          })
-        }
-      }
-    }}>
-      <div style={{ backgroundColor: theme.colors.dark[9], minHeight: '100vh', color: theme.colors.dark[0] }}>
-        {/* Navbar */}
-        <div>
-          <Navbar />
+    <div style={{ backgroundColor: theme.colors.dark[9], minHeight: '100vh', color: theme.colors.dark[0] }}>
+      {/* Navbar */}
+      <div>
+        <Navbar />
+      </div>
+      
+      {/* Main Content */}
+      <div className="md:ml-[300px] p-4 max-w-[1400px] mx-auto">
+        {/* Header and Contribute Button */}
+        <div className="bg-[#25262b] rounded-lg p-6 mb-6 shadow-md">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+            <div>
+              <Title order={1} className="text-2xl md:text-3xl font-bold mb-2">Resource Hub</Title>
+              <Text size="md" color="dimmed" className="max-w-2xl">
+                Find study materials, quizzes, and exam papers shared by your peers. Filter by branch, semester, and subject to find exactly what you need.
+              </Text>
+            </div>
+            <Button 
+              leftIcon={<IconPlus size={16} />} 
+              color="blue" 
+              onClick={() => setUploadModalOpen(true)}
+              className="w-full sm:w-auto mt-4 sm:mt-0 bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-600 hover:to-violet-600 transition-all"
+              size="md"
+            >
+              Contribute Resources
+            </Button>
+          </div>
+          
+          {/* Search Bar - Prominent Position */}
+          <TextInput
+            placeholder="Search by title or description"
+            icon={<IconSearch size={16} />}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="mb-4"
+            size="md"
+            styles={{
+              input: { 
+                backgroundColor: theme.colors.dark[6],
+                borderColor: theme.colors.dark[5],
+                '&:focus': { borderColor: theme.colors.blue[5] }
+              }
+            }}
+          />
+          
+          {/* Collapsible Filters */}
+          <Paper p="md" className="bg-[#2C2E33] border border-[#373A40] rounded-md">
+            <Group position="apart" className="cursor-pointer" onClick={() => setFiltersExpanded(!filtersExpanded)}>
+              <Group>
+                <IconFilter size={16} />
+                <Title order={4}>Advanced Filters</Title>
+              </Group>
+              <Button variant="subtle" compact>
+                {filtersExpanded ? 'Hide Filters' : 'Show Filters'}
+              </Button>
+            </Group>
+            
+            {filtersExpanded && (
+              <Grid className="mt-4">
+                <Grid.Col xs={12} sm={6} md={3}>
+                  <Select
+                    label="Branch"
+                    placeholder="Select branch"
+                    data={BRANCHES}
+                    value={branch}
+                    onChange={setBranch}
+                    clearable
+                    searchable
+                    styles={{
+                      input: { backgroundColor: theme.colors.dark[6] }
+                    }}
+                  />
+                </Grid.Col>
+                <Grid.Col xs={12} sm={6} md={3}>
+                  <Select
+                    label="Semester"
+                    placeholder="Select semester"
+                    data={SEMESTERS}
+                    value={semester}
+                    onChange={setSemester}
+                    clearable
+                    disabled={!branch}
+                    styles={{
+                      input: { backgroundColor: theme.colors.dark[6] }
+                    }}
+                  />
+                </Grid.Col>
+                <Grid.Col xs={12} sm={6} md={3}>
+                  <Select
+                    label="Subject"
+                    placeholder="Select subject"
+                    data={getFilteredSubjects(branch, semester)}
+                    value={subject}
+                    onChange={setSubject}
+                    clearable
+                    searchable
+                    disabled={!branch || !semester}
+                    styles={{
+                      input: { backgroundColor: theme.colors.dark[6] }
+                    }}
+                  />
+                </Grid.Col>
+                <Grid.Col xs={12} sm={6} md={3}>
+                  <Select
+                    label="Resource Type"
+                    placeholder="Select type"
+                    data={RESOURCE_TYPES}
+                    value={resourceType}
+                    onChange={setResourceType}
+                    clearable
+                    styles={{
+                      input: { backgroundColor: theme.colors.dark[6] }
+                    }}
+                  />
+                </Grid.Col>
+                <Grid.Col xs={12} className="flex justify-end mt-2">
+                  <Button 
+                    variant="outline" 
+                    color="gray" 
+                    onClick={() => {
+                      setBranch('');
+                      setSemester('');
+                      setSubject('');
+                      setResourceType('');
+                      setSearchQuery('');
+                    }}
+                    compact
+                    className="mr-2"
+                  >
+                    Clear Filters
+                  </Button>
+                  <Button 
+                    color="blue" 
+                    onClick={fetchResources}
+                    compact
+                  >
+                    Apply Filters
+                  </Button>
+                </Grid.Col>
+              </Grid>
+            )}
+          </Paper>
         </div>
         
-        {/* Main Content */}
-        <div className="md:ml-[300px] p-4 max-w-[1400px] mx-auto">
-          {/* Header and Contribute Button */}
-          <div className="bg-[#25262b] rounded-lg p-6 mb-6 shadow-md">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-              <div>
-                <Title order={1} className="text-2xl md:text-3xl font-bold mb-2" style={{ color: theme.colors.gray[0] }}>Resource Hub</Title>
-                <Text size="md" color="dimmed" className="max-w-2xl">
-                  Find study materials, quizzes, and exam papers shared by your peers. Filter by branch, semester, and subject to find exactly what you need.
-                </Text>
+        {/* Resources Display */}
+        <div className="bg-[#25262b] rounded-lg p-6 shadow-md">
+          {loading ? (
+            <div className="flex flex-col justify-center items-center py-20">
+              <Loader size="lg" color="blue" />
+              <Text size="md" color="dimmed" mt={10}>Loading resources...</Text>
+            </div>
+          ) : resources.length === 0 ? (
+            <div className="text-center py-16 px-4">
+              <div className="inline-flex rounded-full bg-[#2C2E33] p-6 mb-4">
+                <IconDownload size={32} className="text-blue-400" />
               </div>
+              <Text size="xl" weight={600} mb={10}>No resources found</Text>
+              <Text color="dimmed" size="md" className="max-w-md mx-auto mb-6">
+                Try adjusting your filters or be the first to contribute resources for this category!
+              </Text>
               <Button 
-                leftIcon={<IconPlus size={16} />} 
                 color="blue" 
                 onClick={() => setUploadModalOpen(true)}
-                className="w-full sm:w-auto mt-4 sm:mt-0 bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-600 hover:to-violet-600 transition-all"
-                size="md"
+                leftIcon={<IconPlus size={16} />}
               >
                 Contribute Resources
               </Button>
             </div>
-            
-            {/* Search Bar - Prominent Position */}
-            <TextInput
-              placeholder="Search by title or description"
-              icon={<IconSearch size={16} />}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="mb-4"
-              size="md"
+          ) : (
+            <Tabs 
+              defaultValue="study_materials" 
               styles={{
-                input: { 
-                  backgroundColor: theme.colors.dark[6],
-                  borderColor: theme.colors.dark[5],
-                  '&:focus': { borderColor: theme.colors.blue[5] }
+                tabsList: { borderColor: theme.colors.dark[5] },
+                tab: { 
+                  '&[data-active]': { 
+                    borderColor: theme.colors.blue[5],
+                    color: 'white'
+                  }
                 }
               }}
-            />
-            
-            {/* Collapsible Filters */}
-            <Paper p="md" className="bg-[#2C2E33] border border-[#373A40] rounded-md">
-              <Group position="apart" className="cursor-pointer" onClick={() => setFiltersExpanded(!filtersExpanded)}>
-                <Group>
-                  <IconFilter size={16} />
-                  <Title order={4}>Advanced Filters</Title>
-                </Group>
-                <Button variant="subtle" compact>
-                  {filtersExpanded ? 'Hide Filters' : 'Show Filters'}
-                </Button>
-              </Group>
+            >
+              <Tabs.List className="mb-4 overflow-x-auto flex-nowrap">
+                <Tabs.Tab value="study_materials" icon={<IconDownload size={14} />}>
+                  Study Materials ({groupedResources.study_materials.length})
+                </Tabs.Tab>
+                <Tabs.Tab value="quiz" icon={<IconDownload size={14} />}>
+                  Quiz ({groupedResources.quiz.length})
+                </Tabs.Tab>
+                <Tabs.Tab value="midsems" icon={<IconDownload size={14} />}>
+                  Midsems ({groupedResources.midsems.length})
+                </Tabs.Tab>
+                <Tabs.Tab value="endsems" icon={<IconDownload size={14} />}>
+                  Endsems ({groupedResources.endsems.length})
+                </Tabs.Tab>
+              </Tabs.List>
               
-              {filtersExpanded && (
-                <Grid className="mt-4">
-                  <Grid.Col xs={12} sm={6} md={3}>
-                    <Select
-                      label="Branch"
-                      placeholder="Select branch"
-                      data={BRANCHES}
-                      value={branch}
-                      onChange={setBranch}
-                      clearable
-                      searchable
-                      styles={{
-                        input: { backgroundColor: theme.colors.dark[6] }
-                      }}
-                    />
-                  </Grid.Col>
-                  <Grid.Col xs={12} sm={6} md={3}>
-                    <Select
-                      label="Semester"
-                      placeholder="Select semester"
-                      data={SEMESTERS}
-                      value={semester}
-                      onChange={setSemester}
-                      clearable
-                      disabled={!branch}
-                      styles={{
-                        input: { backgroundColor: theme.colors.dark[6] }
-                      }}
-                    />
-                  </Grid.Col>
-                  <Grid.Col xs={12} sm={6} md={3}>
-                    <Select
-                      label="Subject"
-                      placeholder="Select subject"
-                      data={getFilteredSubjects(branch, semester)}
-                      value={subject}
-                      onChange={setSubject}
-                      clearable
-                      searchable
-                      disabled={!branch || !semester}
-                      styles={{
-                        input: { backgroundColor: theme.colors.dark[6] }
-                      }}
-                    />
-                  </Grid.Col>
-                  <Grid.Col xs={12} sm={6} md={3}>
-                    <Select
-                      label="Resource Type"
-                      placeholder="Select type"
-                      data={RESOURCE_TYPES}
-                      value={resourceType}
-                      onChange={setResourceType}
-                      clearable
-                      styles={{
-                        input: { backgroundColor: theme.colors.dark[6] }
-                      }}
-                    />
-                  </Grid.Col>
-                  <Grid.Col xs={12} className="flex justify-end mt-2">
-                    <Button 
-                      variant="outline" 
-                      color="gray" 
-                      onClick={() => {
-                        setBranch('');
-                        setSemester('');
-                        setSubject('');
-                        setResourceType('');
-                        setSearchQuery('');
-                      }}
-                      compact
-                      className="mr-2"
-                    >
-                      Clear Filters
-                    </Button>
-                    <Button 
-                      color="blue" 
-                      onClick={fetchResources}
-                      compact
-                    >
-                      Apply Filters
-                    </Button>
-                  </Grid.Col>
-                </Grid>
-              )}
-            </Paper>
-          </div>
-          
-          {/* Resources Display */}
-          <div className="bg-[#25262b] rounded-lg p-6 shadow-md">
-            {loading ? (
-              <div className="flex flex-col justify-center items-center py-20">
-                <Loader size="lg" color="blue" />
-                <Text size="md" color="dimmed" mt={10}>Loading resources...</Text>
-              </div>
-            ) : resources.length === 0 ? (
-              <div className="text-center py-16 px-4">
-                <div className="inline-flex rounded-full bg-[#2C2E33] p-6 mb-4">
-                  <IconDownload size={32} className="text-blue-400" />
-                </div>
-                <Text size="xl" weight={600} mb={10} style={{ color: theme.colors.gray[0] }}>No resources found</Text>
-                <Text color="dimmed" size="md" className="max-w-md mx-auto mb-6">
-                  Try adjusting your filters or be the first to contribute resources for this category!
-                </Text>
-                <Button 
-                  color="blue" 
-                  onClick={() => setUploadModalOpen(true)}
-                  leftIcon={<IconPlus size={16} />}
-                >
-                  Contribute Resources
-                </Button>
-              </div>
-            ) : (
-              <Tabs 
-                defaultValue="study_materials" 
-                styles={{
-                  tabsList: { borderColor: theme.colors.dark[5] },
-                  tab: { 
-                    '&[data-active]': { 
-                      borderColor: theme.colors.blue[5],
-                      color: 'white'
-                    }
-                  }
-                }}
-              >
-                <Tabs.List className="mb-4 overflow-x-auto flex-nowrap">
-                  <Tabs.Tab value="study_materials" icon={<IconDownload size={14} />}>
-                    Study Materials ({groupedResources.study_materials.length})
-                  </Tabs.Tab>
-                  <Tabs.Tab value="quiz" icon={<IconDownload size={14} />}>
-                    Quiz ({groupedResources.quiz.length})
-                  </Tabs.Tab>
-                  <Tabs.Tab value="midsems" icon={<IconDownload size={14} />}>
-                    Midsems ({groupedResources.midsems.length})
-                  </Tabs.Tab>
-                  <Tabs.Tab value="endsems" icon={<IconDownload size={14} />}>
-                    Endsems ({groupedResources.endsems.length})
-                  </Tabs.Tab>
-                </Tabs.List>
-                
-                {Object.entries(groupedResources).map(([type, items]) => (
-                  <Tabs.Panel value={type} key={type} pt="md">
-                    <Grid>
-                      {items.map(resource => (
-                        <Grid.Col xs={12} sm={6} lg={4} key={resource.id}>
-                          <Card 
-                            p="lg" 
-                            radius="md" 
-                            withBorder 
-                            className="h-full hover:shadow-lg transition-shadow duration-200 hover:border-blue-500"
+              {Object.entries(groupedResources).map(([type, items]) => (
+                <Tabs.Panel value={type} key={type} pt="md">
+                  <Grid>
+                    {items.map(resource => (
+                      <Grid.Col xs={12} sm={6} lg={4} key={resource.id}>
+                        <Card 
+                          p="lg" 
+                          radius="md" 
+                          withBorder 
+                          className="h-full hover:shadow-lg transition-shadow duration-200 hover:border-blue-500"
+                          styles={{
+                            root: {
+                              backgroundColor: theme.colors.dark[7],
+                              borderColor: theme.colors.dark[5]
+                            }
+                          }}
+                        >
+                          <Card.Section p="md" 
                             styles={{
                               root: {
-                                backgroundColor: theme.colors.dark[7],
-                                borderColor: theme.colors.dark[5]
+                                backgroundColor: theme.colors.dark[8],
+                                borderBottom: `1px solid ${theme.colors.dark[5]}`
                               }
                             }}
                           >
-                            <Card.Section p="md" 
-                              styles={{
-                                root: {
-                                  backgroundColor: theme.colors.dark[8],
-                                  borderBottom: `1px solid ${theme.colors.dark[5]}`
-                                }
-                              }}
-                            >
-                              <Group position="apart">
-                                <Text weight={600} size="lg" lineClamp={1} style={{ color: theme.colors.gray[0] }}>
-                                  {resource.title}
-                                </Text>
-                                <Badge 
-                                  color={
-                                    resource.resourceType === 'study_materials' ? 'blue' : 
-                                    resource.resourceType === 'quiz' ? 'green' : 
-                                    resource.resourceType === 'midsems' ? 'orange' : 
-                                    'red'
-                                  }
-                                  variant="filled"
-                                  className="capitalize"
-                                >
-                                  {resource.resourceType.replace('_', ' ')}
-                                </Badge>
-                              </Group>
-                            </Card.Section>
-                            
-                            <Stack spacing="xs" mt="md">
-                              <Text size="sm" style={{ color: theme.colors.gray[3] }} lineClamp={2} className="min-h-[40px]">
-                                {resource.description || 'No description provided'}
+                            <Group position="apart">
+                              <Text weight={600} size="lg" lineClamp={1} style={{ color: theme.colors.gray[0] }}>
+                                {resource.title}
                               </Text>
-                              
-                              <div className="mt-2 p-2 rounded-md" style={{ backgroundColor: theme.colors.dark[8] }}>
-                                <Group spacing="xs" className="mb-1">
-                                  <Text size="xs" style={{ color: theme.colors.gray[5] }} className="w-20">Branch:</Text>
-                                  <Text size="xs" style={{ color: theme.colors.gray[0] }}>{resource.branch}</Text>
-                                </Group>
-                                <Group spacing="xs" className="mb-1">
-                                  <Text size="xs" style={{ color: theme.colors.gray[5] }} className="w-20">Semester:</Text>
-                                  <Text size="xs" style={{ color: theme.colors.gray[0] }}>{resource.semester}</Text>
-                                </Group>
-                                <Group spacing="xs">
-                                  <Text size="xs" style={{ color: theme.colors.gray[5] }} className="w-20">Subject:</Text>
-                                  <Text size="xs" style={{ color: theme.colors.gray[0] }}>{resource.subject}</Text>
-                                </Group>
-                              </div>
-                              
-                              <Group position="apart" mt="md" className="pt-2" style={{ borderTop: `1px solid ${theme.colors.dark[5]}` }}>
-                                <Text size="xs" style={{ color: theme.colors.gray[5] }}>
-                                  Uploaded by {resource.uploadedByName}
-                                </Text>
-                                <Button 
-                                  component="a" 
-                                  href={resource.fileUrl} 
-                                  target="_blank" 
-                                  variant="light"
-                                  color="blue"
-                                  compact
-                                  className="hover:bg-blue-600 hover:text-white transition-colors"
-                                  leftIcon={<IconDownload size={14} />}
-                                >
-                                  Download
-                                </Button>
+                              <Badge 
+                                color={
+                                  resource.resourceType === 'study_materials' ? 'blue' : 
+                                  resource.resourceType === 'quiz' ? 'green' : 
+                                  resource.resourceType === 'midsems' ? 'orange' : 
+                                  'red'
+                                }
+                                variant="filled"
+                                className="capitalize"
+                              >
+                                {resource.resourceType.replace('_', ' ')}
+                              </Badge>
+                            </Group>
+                          </Card.Section>
+                          
+                          <Stack spacing="xs" mt="md">
+                            <Text size="sm" style={{ color: theme.colors.gray[3] }} lineClamp={2} className="min-h-[40px]">
+                              {resource.description || 'No description provided'}
+                            </Text>
+                            
+                            <div className="mt-2 p-2 rounded-md" style={{ backgroundColor: theme.colors.dark[8] }}>
+                              <Group spacing="xs" className="mb-1">
+                                <Text size="xs" style={{ color: theme.colors.gray[5] }} className="w-20">Branch:</Text>
+                                <Text size="xs" style={{ color: theme.colors.gray[0] }}>{resource.branch}</Text>
                               </Group>
-                            </Stack>
-                          </Card>
-                        </Grid.Col>
-                      ))}
-                    </Grid>
-                  </Tabs.Panel>
-                ))}
-              </Tabs>
-            )}
-          </div>
+                              <Group spacing="xs" className="mb-1">
+                                <Text size="xs" style={{ color: theme.colors.gray[5] }} className="w-20">Semester:</Text>
+                                <Text size="xs" style={{ color: theme.colors.gray[0] }}>{resource.semester}</Text>
+                              </Group>
+                              <Group spacing="xs">
+                                <Text size="xs" style={{ color: theme.colors.gray[5] }} className="w-20">Subject:</Text>
+                                <Text size="xs" style={{ color: theme.colors.gray[0] }}>{resource.subject}</Text>
+                              </Group>
+                            </div>
+                            
+                            <Group position="apart" mt="md" className="pt-2" style={{ borderTop: `1px solid ${theme.colors.dark[5]}` }}>
+                              <Text size="xs" style={{ color: theme.colors.gray[5] }}>
+                                Uploaded by {resource.uploadedByName}
+                              </Text>
+                              <Button 
+                                component="a" 
+                                href={resource.fileUrl} 
+                                target="_blank" 
+                                variant="light"
+                                color="blue"
+                                compact
+                                className="hover:bg-blue-600 hover:text-white transition-colors"
+                                leftIcon={<IconDownload size={14} />}
+                              >
+                                Download
+                              </Button>
+                            </Group>
+                          </Stack>
+                        </Card>
+                      </Grid.Col>
+                    ))}
+                  </Grid>
+                </Tabs.Panel>
+              ))}
+            </Tabs>
+          )}
+        </div>
+      </div>
+      
+      {/* Upload Modal */}
+      <Modal
+        opened={uploadModalOpen}
+        onClose={() => {
+          setUploadModalOpen(false);
+          setUploadFiles([]);
+          setCurrentFileName('');
+        }}
+        title={<Text size="xl" weight={700}>Contribute a Resource</Text>}
+        size="lg"
+        padding="xl"
+        styles={{
+          modal: { backgroundColor: theme.colors.dark[9] },
+          header: { backgroundColor: theme.colors.dark[9] }
+        }}
+      >
+        <div className="mb-4">
+          <Text size="sm" color="dimmed" mb="md">
+            Share your study materials, quizzes, or exam papers with your peers. All uploads require authentication with your LNMIIT email.
+          </Text>
         </div>
         
-        {/* Upload Modal */}
-        <Modal
-          opened={uploadModalOpen}
-          onClose={() => {
-            setUploadModalOpen(false);
-            setUploadFiles([]);
-            setCurrentFileName('');
-          }}
-          title={<Text size="xl" weight={700}>Contribute a Resource</Text>}
-          size="lg"
-          padding="xl"
-          styles={{
-            modal: { backgroundColor: theme.colors.dark[9] },
-            header: { backgroundColor: theme.colors.dark[9] }
-          }}
+        <TextInput
+          label="Title"
+          placeholder="Enter a descriptive title"
+          value={uploadTitle}
+          onChange={(e) => setUploadTitle(e.target.value)}
+          required
+          mb="md"
+          styles={{ input: { backgroundColor: theme.colors.dark[6] } }}
+        />
+        
+        <Textarea
+          label="Description"
+          placeholder="Provide a brief description of the resource"
+          value={uploadDescription}
+          onChange={(e) => setUploadDescription(e.target.value)}
+          minRows={3}
+          mb="md"
+          styles={{ input: { backgroundColor: theme.colors.dark[6] } }}
+        />
+        
+        <Grid mb="md">
+          <Grid.Col xs={12} sm={4}>
+            <Select
+              label="Branch"
+              placeholder="Select branch"
+              data={BRANCHES}
+              value={uploadBranch}
+              onChange={setUploadBranch}
+              required
+              searchable
+              styles={{ input: { backgroundColor: theme.colors.dark[6] } }}
+            />
+          </Grid.Col>
+          <Grid.Col xs={12} sm={4}>
+            <Select
+              label="Semester"
+              placeholder="Select semester"
+              data={SEMESTERS}
+              value={uploadSemester}
+              onChange={setUploadSemester}
+              required
+              disabled={!uploadBranch}
+              styles={{ input: { backgroundColor: theme.colors.dark[6] } }}
+            />
+          </Grid.Col>
+          <Grid.Col xs={12} sm={4}>
+            <Select
+              label="Resource Type"
+              placeholder="Select type"
+              data={RESOURCE_TYPES}
+              value={uploadResourceType}
+              onChange={setUploadResourceType}
+              required
+              styles={{ input: { backgroundColor: theme.colors.dark[6] } }}
+            />
+          </Grid.Col>
+        </Grid>
+        
+        <Select
+          label="Subject"
+          placeholder="Select subject"
+          data={getFilteredSubjects(uploadBranch, uploadSemester)}
+          value={uploadSubject}
+          onChange={setUploadSubject}
+          required
+          searchable
+          disabled={!uploadBranch || !uploadSemester}
+          mb="xl"
+          styles={{ input: { backgroundColor: theme.colors.dark[6] } }}
+        />
+        
+        <Dropzone
+          onDrop={handleFileSelect}
+          maxSize={10 * 1024 * 1024} 
+          accept={['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation']}
+          multiple 
+          mb="xl"
+          className="border-dashed border-2 border-[#373A40] hover:border-blue-500 transition-colors"
+          styles={{ root: { backgroundColor: theme.colors.dark[6] } }}
         >
-          <div className="mb-4">
-            <Text size="sm" color="dimmed" mb="md">
-              Share your study materials, quizzes, or exam papers with your peers. All uploads require authentication with your LNMIIT email.
+          <Group position="center" spacing="xl" style={{ minHeight: 120, pointerEvents: 'none' }}>
+            <div className="text-center">
+              {uploadFiles.length > 0 ? (
+                <>
+                  <IconDownload size={32} color="#5C7CFA" />
+                  <Text size="lg" inline mt="md" style={{ color: theme.colors.gray[0] }}>
+                    {uploadFiles.length} file(s) selected
+                  </Text>
+                  <Text size="xs" color="dimmed" inline mt={7}>
+                    Click or drag to replace
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <Text size="xl" inline style={{ color: theme.colors.gray[0] }}>
+                    Here, you can drag multiple files too!
+                  </Text>
+                  <Text size="sm" color="dimmed" inline mt={7}>
+                    Files should not exceed 10MB each
+                  </Text>
+                </>
+              )}
+            </div>
+          </Group>
+        </Dropzone>
+        
+        {uploadFiles.length > 0 && (
+          <div className="mt-4">
+            <Text size="sm" color="dimmed" mb="2">
+              Selected Files:
+            </Text>
+            <div className="space-y-2">
+              {uploadFiles.map((file, index) => (
+                <div key={index} className="flex items-center justify-between p-2 bg-[#2C2E33] rounded-md">
+                  <Group spacing="xs">
+                    <IconDownload size={16} color="#5C7CFA" />
+                    <Text size="sm" style={{ color: theme.colors.gray[0] }} className="truncate max-w-[200px]">
+                      {file.name}
+                    </Text>
+                    <Text size="xs" color="dimmed">
+                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                    </Text>
+                  </Group>
+                  <Button
+                    variant="subtle"
+                    color="red"
+                    size="xs"
+                    onClick={() => {
+                      setUploadFiles(uploadFiles.filter((_, i) => i !== index));
+                    }}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {uploading && (
+          <div className="mt-4 mb-4">
+            <Text align="center" size="sm" mb={5}>
+              Uploading file {currentFileIndex} of {totalFiles}: {currentFileName}
+            </Text>
+            <Text align="center" size="sm" mb={5}>
+              Progress: {uploadProgress}%
+            </Text>
+            <div className="w-full bg-[#373A40] rounded-full h-2.5">
+              <div 
+                className="bg-gradient-to-r from-blue-500 to-violet-500 h-2.5 rounded-full" 
+                style={{ width: `${uploadProgress}%` }}
+              ></div>
+            </div>
+            <Text align="center" size="sm" mt={5}>
+              Completed: {filesUploaded}/{totalFiles} files
             </Text>
           </div>
-          
-          <TextInput
-            label="Title"
-            placeholder="Enter a descriptive title"
-            value={uploadTitle}
-            onChange={(e) => setUploadTitle(e.target.value)}
-            required
-            mb="md"
-            styles={{ input: { backgroundColor: theme.colors.dark[6] } }}
-          />
-          
-          <Textarea
-            label="Description"
-            placeholder="Provide a brief description of the resource"
-            value={uploadDescription}
-            onChange={(e) => setUploadDescription(e.target.value)}
-            minRows={3}
-            mb="md"
-            styles={{ input: { backgroundColor: theme.colors.dark[6] } }}
-          />
-          
-          <Grid mb="md">
-            <Grid.Col xs={12} sm={4}>
-              <Select
-                label="Branch"
-                placeholder="Select branch"
-                data={BRANCHES}
-                value={uploadBranch}
-                onChange={setUploadBranch}
-                required
-                searchable
-                styles={{ input: { backgroundColor: theme.colors.dark[6] } }}
-              />
-            </Grid.Col>
-            <Grid.Col xs={12} sm={4}>
-              <Select
-                label="Semester"
-                placeholder="Select semester"
-                data={SEMESTERS}
-                value={uploadSemester}
-                onChange={setUploadSemester}
-                required
-                disabled={!uploadBranch}
-                styles={{ input: { backgroundColor: theme.colors.dark[6] } }}
-              />
-            </Grid.Col>
-            <Grid.Col xs={12} sm={4}>
-              <Select
-                label="Resource Type"
-                placeholder="Select type"
-                data={RESOURCE_TYPES}
-                value={uploadResourceType}
-                onChange={setUploadResourceType}
-                required
-                styles={{ input: { backgroundColor: theme.colors.dark[6] } }}
-              />
-            </Grid.Col>
-          </Grid>
-          
-          <Select
-            label="Subject"
-            placeholder="Select subject"
-            data={getFilteredSubjects(uploadBranch, uploadSemester)}
-            value={uploadSubject}
-            onChange={setUploadSubject}
-            required
-            searchable
-            disabled={!uploadBranch || !uploadSemester}
-            mb="xl"
-            styles={{ input: { backgroundColor: theme.colors.dark[6] } }}
-          />
-          
-          <Dropzone
-            onDrop={handleFileSelect}
-            maxSize={10 * 1024 * 1024} 
-            accept={['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation']}
-            multiple 
-            mb="xl"
-            className="border-dashed border-2 border-[#373A40] hover:border-blue-500 transition-colors"
-            styles={{ root: { backgroundColor: theme.colors.dark[6] } }}
+        )}
+        
+        <Group position="right" mt="xl">
+          <Button variant="default" onClick={() => setUploadModalOpen(false)}>
+            Cancel
+          </Button>
+          <Button 
+            color="blue" 
+            onClick={handleSingleUpload} 
+            loading={uploading}
+            disabled={!uploadTitle || !uploadBranch || !uploadSemester || !uploadSubject || !uploadResourceType || uploadFiles.length === 0}
+            className="bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-600 hover:to-violet-600"
           >
-            <Group position="center" spacing="xl" style={{ minHeight: 120, pointerEvents: 'none' }}>
-              <div className="text-center">
-                {uploadFiles.length > 0 ? (
-                  <>
-                    <IconDownload size={32} color="#5C7CFA" />
-                    <Text size="lg" inline mt="md" style={{ color: theme.colors.gray[0] }}>
-                      {uploadFiles.length} file(s) selected
-                    </Text>
-                    <Text size="xs" color="dimmed" inline mt={7}>
-                      Click or drag to replace
-                    </Text>
-                  </>
-                ) : (
-                  <>
-                    <Text size="xl" inline style={{ color: theme.colors.gray[0] }}>
-                      Here, you can drag multiple files too!
-                    </Text>
-                    <Text size="sm" color="dimmed" inline mt={7}>
-                      Files should not exceed 10MB each
-                    </Text>
-                  </>
-                )}
-              </div>
-            </Group>
-          </Dropzone>
-          
-          {uploadFiles.length > 0 && (
-            <div className="mt-4">
-              <Text size="sm" color="dimmed" mb="2">
-                Selected Files:
-              </Text>
-              <div className="space-y-2">
-                {uploadFiles.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-[#2C2E33] rounded-md">
-                    <Group spacing="xs">
-                      <IconDownload size={16} color="#5C7CFA" />
-                      <Text size="sm" style={{ color: theme.colors.gray[0] }} className="truncate max-w-[200px]">
-                        {file.name}
-                      </Text>
-                      <Text size="xs" color="dimmed">
-                        {(file.size / 1024 / 1024).toFixed(2)} MB
-                      </Text>
-                    </Group>
-                    <Button
-                      variant="subtle"
-                      color="red"
-                      size="xs"
-                      onClick={() => {
-                        setUploadFiles(uploadFiles.filter((_, i) => i !== index));
-                      }}
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+            {uploadFiles.length > 1 ? 'Upload Multiple Files' : 'Upload Resource'}
+          </Button>
+        </Group>
+      </Modal>
 
-          {uploading && (
-            <div className="mt-4 mb-4">
-              <Text align="center" size="sm" mb={5}>
-                Uploading file {currentFileIndex} of {totalFiles}: {currentFileName}
-              </Text>
-              <Text align="center" size="sm" mb={5}>
-                Progress: {uploadProgress}%
-              </Text>
-              <div className="w-full bg-[#373A40] rounded-full h-2.5">
-                <div 
-                  className="bg-gradient-to-r from-blue-500 to-violet-500 h-2.5 rounded-full" 
-                  style={{ width: `${uploadProgress}%` }}
-                ></div>
-              </div>
-              <Text align="center" size="sm" mt={5}>
-                Completed: {filesUploaded}/{totalFiles} files
-              </Text>
-            </div>
-          )}
-          
-          <Group position="right" mt="xl">
-            <Button variant="default" onClick={() => setUploadModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button 
-              color="blue" 
-              onClick={handleSingleUpload} 
-              loading={uploading}
-              disabled={!uploadTitle || !uploadBranch || !uploadSemester || !uploadSubject || !uploadResourceType || uploadFiles.length === 0}
-              className="bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-600 hover:to-violet-600"
-            >
-              {uploadFiles.length > 1 ? 'Upload Multiple Files' : 'Upload Resource'}
-            </Button>
-          </Group>
-        </Modal>
-
-        {/* Bulk Upload Confirmation Modal */}
-        <Modal
-          opened={bulkUploadModalOpen}
-          onClose={() => setBulkUploadModalOpen(false)}
-          title={<Text size="xl" weight={700}>Bulk Upload Confirmation</Text>}
-          size="sm"
-          padding="xl"
-          styles={{
-            modal: { backgroundColor: theme.colors.dark[9] },
-            header: { backgroundColor: theme.colors.dark[9] }
-          }}
-        >
-          <div className="mb-4">
-            <Text size="sm" color="dimmed" mb="md">
-              You have selected {uploadFiles.length} files. Would you like to upload them all with the same metadata?
-            </Text>
-          </div>
-          
-          <Group position="right" mt="xl">
-            <Button variant="default" onClick={() => setBulkUploadModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button 
-              color="blue" 
-              onClick={handleBulkUpload} 
-              loading={uploading}
-              className="bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-600 hover:to-violet-600"
-            >
-              Upload All Files
-            </Button>
-          </Group>
-        </Modal>
-      </div>
-    </MantineProvider>
+      {/* Bulk Upload Confirmation Modal */}
+      <Modal
+        opened={bulkUploadModalOpen}
+        onClose={() => setBulkUploadModalOpen(false)}
+        title={<Text size="xl" weight={700}>Bulk Upload Confirmation</Text>}
+        size="sm"
+        padding="xl"
+        styles={{
+          modal: { backgroundColor: theme.colors.dark[9] },
+          header: { backgroundColor: theme.colors.dark[9] }
+        }}
+      >
+        <div className="mb-4">
+          <Text size="sm" color="dimmed" mb="md">
+            You have selected {uploadFiles.length} files. Would you like to upload them all with the same metadata?
+          </Text>
+        </div>
+        
+        <Group position="right" mt="xl">
+          <Button variant="default" onClick={() => setBulkUploadModalOpen(false)}>
+            Cancel
+          </Button>
+          <Button 
+            color="blue" 
+            onClick={handleBulkUpload} 
+            loading={uploading}
+            className="bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-600 hover:to-violet-600"
+          >
+            Upload All Files
+          </Button>
+        </Group>
+      </Modal>
+    </div>
   );
 }
 

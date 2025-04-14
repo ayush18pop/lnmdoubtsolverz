@@ -34,24 +34,203 @@ const theme = createTheme({
   /** Apply dark mode styles */
   defaultRadius: 'md',
   fontFamily: 'Inter, sans-serif',
-
-  /** Enable dark mode */
   colorScheme: 'dark',
 
   /** Override default styles */
   components: {
+    Card: {
+      styles: (theme) => ({
+        root: { 
+          backgroundColor: theme.colors.dark[7],
+          borderColor: theme.colors.dark[5],
+          color: theme.colors.gray[0]
+        }
+      })
+    },
+    CardSection: {
+      styles: (theme) => ({
+        root: { 
+          backgroundColor: theme.colors.dark[8],
+          borderBottomColor: theme.colors.dark[5]
+        }
+      })
+    },
+    Paper: {
+      styles: (theme) => ({
+        root: { 
+          backgroundColor: theme.colors.dark[7],
+          color: theme.colors.gray[0]
+        }
+      }),
+      defaultProps: {
+        radius: 'md',
+      }
+    },
+    Modal: {
+      styles: (theme) => ({
+        content: {
+          backgroundColor: theme.colors.dark[7],
+        },
+        header: {
+          backgroundColor: theme.colors.dark[7],
+          color: theme.colors.gray[0]
+        },
+        title: {
+          color: theme.colors.gray[0]
+        },
+        body: {
+          color: theme.colors.gray[0],
+          backgroundColor: theme.colors.dark[7]
+        },
+        overlay: {
+          backgroundColor: `rgba(${theme.colors.dark[9]}, 0.75)`
+        }
+      })
+    },
+    TextInput: {
+      styles: (theme) => ({
+        input: {
+          backgroundColor: theme.colors.dark[6],
+          borderColor: theme.colors.dark[4],
+          color: theme.colors.gray[0],
+          '&::placeholder': {
+            color: theme.colors.gray[5]
+          }
+        },
+        label: {
+          color: theme.colors.gray[0]
+        },
+        error: {
+          color: theme.colors.red[6]
+        }
+      })
+    },
+    Select: {
+      styles: (theme) => ({
+        input: {
+          backgroundColor: theme.colors.dark[6],
+          borderColor: theme.colors.dark[4],
+          color: theme.colors.gray[0]
+        },
+        label: {
+          color: theme.colors.gray[0]
+        },
+        item: {
+          '&[data-selected]': {
+            backgroundColor: theme.colors.dark[5],
+            color: theme.colors.gray[0]
+          },
+          '&[data-hovered]': {
+            backgroundColor: theme.colors.dark[4]
+          },
+          color: theme.colors.gray[0]
+        },
+        dropdown: {
+          backgroundColor: theme.colors.dark[7],
+          borderColor: theme.colors.dark[4]
+        }
+      })
+    },
+    Textarea: {
+      styles: (theme) => ({
+        input: {
+          backgroundColor: theme.colors.dark[6],
+          borderColor: theme.colors.dark[4],
+          color: theme.colors.gray[0],
+          '&::placeholder': {
+            color: theme.colors.gray[5]
+          }
+        },
+        label: {
+          color: theme.colors.gray[0]
+        }
+      })
+    },
+    FileInput: {
+      styles: (theme) => ({
+        input: {
+          backgroundColor: theme.colors.dark[6],
+          borderColor: theme.colors.dark[4],
+          color: theme.colors.gray[0]
+        },
+        label: {
+          color: theme.colors.gray[0]
+        }
+      })
+    },
+    Tabs: {
+      styles: (theme) => ({
+        tab: {
+          color: theme.colors.gray[0],
+          '&[data-active]': {
+            color: theme.colors.gray[0]
+          }
+        },
+        panel: {
+          color: theme.colors.gray[0]
+        },
+        tabsList: {
+          borderColor: theme.colors.dark[5]
+        }
+      })
+    },
+    Text: {
+      styles: (theme) => ({
+        root: {
+          color: theme.colors.gray[0],
+          '&[data-dimmed="true"]': {
+            color: theme.colors.gray[5]
+          }
+        }
+      })
+    },
+    Title: {
+      styles: (theme) => ({
+        root: {
+          color: theme.colors.gray[0]
+        }
+      })
+    },
     Button: {
       defaultProps: {
         radius: 'md',
         size: 'md',
       },
     },
-    Paper: {
-      defaultProps: {
-        radius: 'md',
-      },
+    PasswordInput: {
+      styles: (theme) => ({
+        input: {
+          backgroundColor: theme.colors.dark[6],
+          borderColor: theme.colors.dark[4],
+          color: theme.colors.gray[0],
+          '&::placeholder': {
+            color: theme.colors.gray[5]
+          }
+        },
+        label: {
+          color: theme.colors.gray[0]
+        },
+        error: {
+          color: theme.colors.red[6]
+        }
+      })
     },
-  },
+    Checkbox: {
+      styles: (theme) => ({
+        input: {
+          backgroundColor: theme.colors.dark[6],
+          borderColor: theme.colors.dark[4],
+          color: theme.colors.gray[0],
+          '&::placeholder': {
+            color: theme.colors.gray[5]
+          }
+        },
+        label: {
+          color: theme.colors.gray[0]
+        }
+      })
+    }
+  }
 });
 
 
