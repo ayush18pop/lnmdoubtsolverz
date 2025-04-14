@@ -1,17 +1,47 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // --- Global Email Validation Rule ---
+    function isLNMIITUser() {
+      return request.auth.token.email.matches('.*@lnmiit\.ac\.in$') &&
+             request.auth.token.email_verified;
+    }
+
+    // --- Doubts Collection ---
     match /doubts/{doubtId} {
-      allow read: if true;
-      allow create: if request.auth != null;
-      allow update: if request.auth != null;
-      allow delete: if request.auth != null && request.auth.uid == resource.data.authorId;
-      
-      match /comments/{commentId} {
-        allow read: if true;
-        allow create: if request.auth != null || request.resource.data.isAnonymous == true;
-        allow update, delete: if request.auth != null && request.auth.uid == resource.data.authorId;
-      }
+      allow read: if isLNMIITUser();
+      allow create: if isLNMIITUser();
+      allow delete: if isLNMIITUser() && request.auth.uid == resource.data.postedBy;
+
+      allow update: if isLNMIITUser() &&
+        (
+          // Allow the author to update their own post (without field restrictions)
+          (request.auth.uid == resource.data.postedBy) ||
+          // Allow anyone to update votes (only if updating these fields)
+          (request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['upvotedBy', 'downvotedBy', 'totalVotes', 'commentCount']))
+        );
+        
+         match /comments/{commentId} {
+      allow read: if isLNMIITUser();
+      allow create: if isLNMIITUser();
+      allow update: if isLNMIITUser() &&
+        request.auth.uid == resource.data.authorId &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'edited', 'timestamp']);
+      allow delete: if isLNMIITUser() &&
+        request.auth.uid == resource.data.authorId;
+    }
+    }
+
+    // --- Resources Collection ---
+    match /resources/{resourceId} {
+      allow read: if isLNMIITUser();
+      allow create: if isLNMIITUser();
+      allow update: if isLNMIITUser() &&
+        request.auth.uid == resource.data.uploadedBy &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'description', 'subject', 'resourceType', 'updatedAt']);
+      allow delete: if isLNMIITUser() &&
+        request.auth.uid == resource.data.uploadedBy;
     }
   }
 }

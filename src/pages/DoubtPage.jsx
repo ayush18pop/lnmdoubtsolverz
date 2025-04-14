@@ -717,7 +717,7 @@ function DoubtPage() {
                 <div style={{ marginBottom: '24px' }}>
                   <Group position="apart" mb="md">
                     <Title order={3} style={{ color: '#F8F9FA' }}>
-                      Comments ({doubt.commentCount || comments.length})
+                      Replies ({doubt.commentCount || comments.length})
                     </Title>
                     <Button variant="subtle" color="violet" size="sm" onClick={focusCommentInput} leftSection={<IconMessageCircle size={16} />}>
                       Add Comment

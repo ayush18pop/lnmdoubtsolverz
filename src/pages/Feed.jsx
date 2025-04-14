@@ -256,7 +256,6 @@ export default function Feed() {
       const currentDownvoted = doubt.downvotedBy || [];
       let newUpvoted = [...currentUpvoted];
       let newDownvoted = [...currentDownvoted];
-      let newTotalVotes = doubt.totalVotes || 0;
   
       const hasUpvoted = currentUpvoted.includes(user.uid);
       const hasDownvoted = currentDownvoted.includes(user.uid);
@@ -264,27 +263,19 @@ export default function Feed() {
       if (voteType === 'up') {
         if (hasUpvoted) {
           newUpvoted = currentUpvoted.filter(uid => uid !== user.uid);
-          newTotalVotes -= 1;
         } else {
           newUpvoted = [...currentUpvoted, user.uid];
           if (hasDownvoted) {
             newDownvoted = currentDownvoted.filter(uid => uid !== user.uid);
-            newTotalVotes += 2;
-          } else {
-            newTotalVotes += 1;
           }
         }
       } else if (voteType === 'down') {
         if (hasDownvoted) {
           newDownvoted = currentDownvoted.filter(uid => uid !== user.uid);
-          newTotalVotes += 1;
         } else {
           newDownvoted = [...currentDownvoted, user.uid];
           if (hasUpvoted) {
             newUpvoted = currentUpvoted.filter(uid => uid !== user.uid);
-            newTotalVotes -= 2;
-          } else {
-            newTotalVotes -= 1;
           }
         }
       }
@@ -292,8 +283,11 @@ export default function Feed() {
       await updateDoc(doubtRef, {
         upvotedBy: newUpvoted,
         downvotedBy: newDownvoted,
-        totalVotes: newTotalVotes,
+        // ❌ Don't update totalVotes
       });
+  
+      // ✅ Calculate locally for display
+      const totalVotes = newUpvoted.length - newDownvoted.length;
   
       setDoubts(prevDoubts =>
         prevDoubts.map(d =>
@@ -302,7 +296,7 @@ export default function Feed() {
                 ...d,
                 upvotedBy: newUpvoted,
                 downvotedBy: newDownvoted,
-                totalVotes: newTotalVotes,
+                totalVotes, // Just used in UI
               }
             : d
         )
@@ -323,6 +317,7 @@ export default function Feed() {
       });
     }
   };
+  
   
 
   const handleSavePost = (doubt) => {
