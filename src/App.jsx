@@ -59,7 +59,7 @@ function App() {
   const [count, setCount] = useState(0)
 
   return (
-    <MantineProvider theme={theme}>
+    <MantineProvider theme={theme} colorScheme="dark" forceDarkAriaAttributes>
       
       <div >
         <Outlet />

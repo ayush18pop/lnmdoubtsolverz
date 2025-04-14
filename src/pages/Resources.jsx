@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import Navbar from '../components/Navbar';
-import { MantineProvider, Text, Button, Select, TextInput, Group, Stack, Card, Badge, Tabs, Loader, Modal, FileInput, Textarea, Grid, Container, Box, Title, Paper } from '@mantine/core';
+import { MantineProvider, Text, Button, Select, TextInput, Group, Stack, Card, Badge, Tabs, Loader, Modal, FileInput, Textarea, Grid, Container, Box, Title, Paper, useMantineTheme } from '@mantine/core';
 import { Dropzone } from '@mantine/dropzone';
 import { notifications } from '@mantine/notifications';
 import { collection, addDoc, getDocs, query, where, orderBy } from 'firebase/firestore';
@@ -289,6 +289,8 @@ function Resources() {
   const [resourceType, setResourceType] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
+  const theme = useMantineTheme();
+
   // Fetch resources on component mount and when filters change
   useEffect(() => {
     fetchResources();
@@ -499,8 +501,51 @@ function Resources() {
   const [filtersExpanded, setFiltersExpanded] = useState(false);
 
   return (
-    <MantineProvider theme={{ colorScheme: 'dark' }}>
-      <div style={{ backgroundColor: '#1A1B1E', minHeight: '100vh', color: '#C1C2C5' }}>
+    <MantineProvider theme={{ 
+      colorScheme: 'dark',
+      components: {
+        Card: {
+          styles: (theme) => ({
+            root: { 
+              backgroundColor: theme.colors.dark[7],
+              borderColor: theme.colors.dark[5],
+              color: theme.colors.gray[0]
+            }
+          })
+        },
+        CardSection: {
+          styles: (theme) => ({
+            root: { 
+              backgroundColor: theme.colors.dark[8],
+              borderBottomColor: theme.colors.dark[5]
+            }
+          })
+        },
+        Paper: {
+          styles: (theme) => ({
+            root: { 
+              backgroundColor: theme.colors.dark[7],
+              color: theme.colors.gray[0]
+            }
+          })
+        },
+        Text: {
+          styles: (theme) => ({
+            root: {
+              color: theme.colors.gray[0]
+            }
+          })
+        },
+        Title: {
+          styles: (theme) => ({
+            root: {
+              color: theme.colors.gray[0]
+            }
+          })
+        }
+      }
+    }}>
+      <div style={{ backgroundColor: theme.colors.dark[9], minHeight: '100vh', color: theme.colors.dark[0] }}>
         {/* Navbar */}
         <div>
           <Navbar />
@@ -512,7 +557,7 @@ function Resources() {
           <div className="bg-[#25262b] rounded-lg p-6 mb-6 shadow-md">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
               <div>
-                <Title order={1} className="text-2xl md:text-3xl font-bold mb-2 text-white">Resource Hub</Title>
+                <Title order={1} className="text-2xl md:text-3xl font-bold mb-2" style={{ color: theme.colors.gray[0] }}>Resource Hub</Title>
                 <Text size="md" color="dimmed" className="max-w-2xl">
                   Find study materials, quizzes, and exam papers shared by your peers. Filter by branch, semester, and subject to find exactly what you need.
                 </Text>
@@ -538,9 +583,9 @@ function Resources() {
               size="md"
               styles={{
                 input: { 
-                  backgroundColor: '#2C2E33',
-                  borderColor: '#373A40',
-                  '&:focus': { borderColor: '#5C7CFA' }
+                  backgroundColor: theme.colors.dark[6],
+                  borderColor: theme.colors.dark[5],
+                  '&:focus': { borderColor: theme.colors.blue[5] }
                 }
               }}
             />
@@ -569,7 +614,7 @@ function Resources() {
                       clearable
                       searchable
                       styles={{
-                        input: { backgroundColor: '#373A40' }
+                        input: { backgroundColor: theme.colors.dark[6] }
                       }}
                     />
                   </Grid.Col>
@@ -583,7 +628,7 @@ function Resources() {
                       clearable
                       disabled={!branch}
                       styles={{
-                        input: { backgroundColor: '#373A40' }
+                        input: { backgroundColor: theme.colors.dark[6] }
                       }}
                     />
                   </Grid.Col>
@@ -598,7 +643,7 @@ function Resources() {
                       searchable
                       disabled={!branch || !semester}
                       styles={{
-                        input: { backgroundColor: '#373A40' }
+                        input: { backgroundColor: theme.colors.dark[6] }
                       }}
                     />
                   </Grid.Col>
@@ -611,7 +656,7 @@ function Resources() {
                       onChange={setResourceType}
                       clearable
                       styles={{
-                        input: { backgroundColor: '#373A40' }
+                        input: { backgroundColor: theme.colors.dark[6] }
                       }}
                     />
                   </Grid.Col>
@@ -656,7 +701,7 @@ function Resources() {
                 <div className="inline-flex rounded-full bg-[#2C2E33] p-6 mb-4">
                   <IconDownload size={32} className="text-blue-400" />
                 </div>
-                <Text size="xl" weight={600} mb={10} className="text-white">No resources found</Text>
+                <Text size="xl" weight={600} mb={10} style={{ color: theme.colors.gray[0] }}>No resources found</Text>
                 <Text color="dimmed" size="md" className="max-w-md mx-auto mb-6">
                   Try adjusting your filters or be the first to contribute resources for this category!
                 </Text>
@@ -672,10 +717,10 @@ function Resources() {
               <Tabs 
                 defaultValue="study_materials" 
                 styles={{
-                  tabsList: { borderColor: '#373A40' },
+                  tabsList: { borderColor: theme.colors.dark[5] },
                   tab: { 
                     '&[data-active]': { 
-                      borderColor: '#5C7CFA',
+                      borderColor: theme.colors.blue[5],
                       color: 'white'
                     }
                   }
@@ -705,11 +750,24 @@ function Resources() {
                             p="lg" 
                             radius="md" 
                             withBorder 
-                            className="h-full hover:shadow-lg transition-shadow duration-200 border-[#373A40] hover:border-blue-500"
+                            className="h-full hover:shadow-lg transition-shadow duration-200 hover:border-blue-500"
+                            styles={{
+                              root: {
+                                backgroundColor: theme.colors.dark[7],
+                                borderColor: theme.colors.dark[5]
+                              }
+                            }}
                           >
-                            <Card.Section p="md" className="bg-gradient-to-r from-[#2C2E33] to-[#25262b] border-b border-[#373A40]">
+                            <Card.Section p="md" 
+                              styles={{
+                                root: {
+                                  backgroundColor: theme.colors.dark[8],
+                                  borderBottom: `1px solid ${theme.colors.dark[5]}`
+                                }
+                              }}
+                            >
                               <Group position="apart">
-                                <Text weight={600} size="lg" lineClamp={1} className="text-white">
+                                <Text weight={600} size="lg" lineClamp={1} style={{ color: theme.colors.gray[0] }}>
                                   {resource.title}
                                 </Text>
                                 <Badge 
@@ -728,27 +786,27 @@ function Resources() {
                             </Card.Section>
                             
                             <Stack spacing="xs" mt="md">
-                              <Text size="sm" color="dimmed" lineClamp={2} className="min-h-[40px]">
+                              <Text size="sm" style={{ color: theme.colors.gray[3] }} lineClamp={2} className="min-h-[40px]">
                                 {resource.description || 'No description provided'}
                               </Text>
                               
-                              <div className="mt-2 p-2 bg-[#2C2E33] rounded-md">
+                              <div className="mt-2 p-2 rounded-md" style={{ backgroundColor: theme.colors.dark[8] }}>
                                 <Group spacing="xs" className="mb-1">
-                                  <Text size="xs" color="dimmed" className="w-20">Branch:</Text>
-                                  <Text size="xs" className="text-white">{resource.branch}</Text>
+                                  <Text size="xs" style={{ color: theme.colors.gray[5] }} className="w-20">Branch:</Text>
+                                  <Text size="xs" style={{ color: theme.colors.gray[0] }}>{resource.branch}</Text>
                                 </Group>
                                 <Group spacing="xs" className="mb-1">
-                                  <Text size="xs" color="dimmed" className="w-20">Semester:</Text>
-                                  <Text size="xs" className="text-white">{resource.semester}</Text>
+                                  <Text size="xs" style={{ color: theme.colors.gray[5] }} className="w-20">Semester:</Text>
+                                  <Text size="xs" style={{ color: theme.colors.gray[0] }}>{resource.semester}</Text>
                                 </Group>
                                 <Group spacing="xs">
-                                  <Text size="xs" color="dimmed" className="w-20">Subject:</Text>
-                                  <Text size="xs" className="text-white">{resource.subject}</Text>
+                                  <Text size="xs" style={{ color: theme.colors.gray[5] }} className="w-20">Subject:</Text>
+                                  <Text size="xs" style={{ color: theme.colors.gray[0] }}>{resource.subject}</Text>
                                 </Group>
                               </div>
                               
-                              <Group position="apart" mt="md" className="pt-2 border-t border-[#373A40]">
-                                <Text size="xs" color="dimmed">
+                              <Group position="apart" mt="md" className="pt-2" style={{ borderTop: `1px solid ${theme.colors.dark[5]}` }}>
+                                <Text size="xs" style={{ color: theme.colors.gray[5] }}>
                                   Uploaded by {resource.uploadedByName}
                                 </Text>
                                 <Button 
@@ -788,8 +846,8 @@ function Resources() {
           size="lg"
           padding="xl"
           styles={{
-            modal: { backgroundColor: '#25262b' },
-            header: { backgroundColor: '#25262b' }
+            modal: { backgroundColor: theme.colors.dark[9] },
+            header: { backgroundColor: theme.colors.dark[9] }
           }}
         >
           <div className="mb-4">
@@ -805,7 +863,7 @@ function Resources() {
             onChange={(e) => setUploadTitle(e.target.value)}
             required
             mb="md"
-            styles={{ input: { backgroundColor: '#2C2E33' } }}
+            styles={{ input: { backgroundColor: theme.colors.dark[6] } }}
           />
           
           <Textarea
@@ -815,7 +873,7 @@ function Resources() {
             onChange={(e) => setUploadDescription(e.target.value)}
             minRows={3}
             mb="md"
-            styles={{ input: { backgroundColor: '#2C2E33' } }}
+            styles={{ input: { backgroundColor: theme.colors.dark[6] } }}
           />
           
           <Grid mb="md">
@@ -828,7 +886,7 @@ function Resources() {
                 onChange={setUploadBranch}
                 required
                 searchable
-                styles={{ input: { backgroundColor: '#2C2E33' } }}
+                styles={{ input: { backgroundColor: theme.colors.dark[6] } }}
               />
             </Grid.Col>
             <Grid.Col xs={12} sm={4}>
@@ -840,7 +898,7 @@ function Resources() {
                 onChange={setUploadSemester}
                 required
                 disabled={!uploadBranch}
-                styles={{ input: { backgroundColor: '#2C2E33' } }}
+                styles={{ input: { backgroundColor: theme.colors.dark[6] } }}
               />
             </Grid.Col>
             <Grid.Col xs={12} sm={4}>
@@ -851,7 +909,7 @@ function Resources() {
                 value={uploadResourceType}
                 onChange={setUploadResourceType}
                 required
-                styles={{ input: { backgroundColor: '#2C2E33' } }}
+                styles={{ input: { backgroundColor: theme.colors.dark[6] } }}
               />
             </Grid.Col>
           </Grid>
@@ -866,7 +924,7 @@ function Resources() {
             searchable
             disabled={!uploadBranch || !uploadSemester}
             mb="xl"
-            styles={{ input: { backgroundColor: '#2C2E33' } }}
+            styles={{ input: { backgroundColor: theme.colors.dark[6] } }}
           />
           
           <Dropzone
@@ -876,14 +934,14 @@ function Resources() {
             multiple 
             mb="xl"
             className="border-dashed border-2 border-[#373A40] hover:border-blue-500 transition-colors"
-            styles={{ root: { backgroundColor: '#2C2E33' } }}
+            styles={{ root: { backgroundColor: theme.colors.dark[6] } }}
           >
             <Group position="center" spacing="xl" style={{ minHeight: 120, pointerEvents: 'none' }}>
               <div className="text-center">
                 {uploadFiles.length > 0 ? (
                   <>
                     <IconDownload size={32} color="#5C7CFA" />
-                    <Text size="lg" inline mt="md" className="text-white">
+                    <Text size="lg" inline mt="md" style={{ color: theme.colors.gray[0] }}>
                       {uploadFiles.length} file(s) selected
                     </Text>
                     <Text size="xs" color="dimmed" inline mt={7}>
@@ -892,7 +950,7 @@ function Resources() {
                   </>
                 ) : (
                   <>
-                    <Text size="xl" inline className="text-white">
+                    <Text size="xl" inline style={{ color: theme.colors.gray[0] }}>
                       Here, you can drag multiple files too!
                     </Text>
                     <Text size="sm" color="dimmed" inline mt={7}>
@@ -914,7 +972,7 @@ function Resources() {
                   <div key={index} className="flex items-center justify-between p-2 bg-[#2C2E33] rounded-md">
                     <Group spacing="xs">
                       <IconDownload size={16} color="#5C7CFA" />
-                      <Text size="sm" className="text-white truncate max-w-[200px]">
+                      <Text size="sm" style={{ color: theme.colors.gray[0] }} className="truncate max-w-[200px]">
                         {file.name}
                       </Text>
                       <Text size="xs" color="dimmed">
@@ -981,8 +1039,8 @@ function Resources() {
           size="sm"
           padding="xl"
           styles={{
-            modal: { backgroundColor: '#25262b' },
-            header: { backgroundColor: '#25262b' }
+            modal: { backgroundColor: theme.colors.dark[9] },
+            header: { backgroundColor: theme.colors.dark[9] }
           }}
         >
           <div className="mb-4">
