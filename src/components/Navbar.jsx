@@ -89,7 +89,7 @@ export default function Navbar() {
     >
       <item.icon className={classes.mobileNavIcon} stroke={1.5} />
       <span>{item.label}</span>
-      {item.soon && <Badge size="xs" color="blue">Soon</Badge>}
+      {item.soon && <Badge size="xs" color="blue">New!</Badge>}
     </Link>
   ));
 
