@@ -90,6 +90,7 @@ export default function Navbar() {
       <item.icon className={classes.mobileNavIcon} stroke={1.5} />
       <span>{item.label}</span>
       {item.soon && <Badge size="xs" color="blue">New!</Badge>}
+      {item.label === "Resources" && <Badge size="xs" color="blue">New!</Badge>}
     </Link>
   ));
 
@@ -103,6 +104,8 @@ export default function Navbar() {
     >
       <item.icon className={classes.linkIcon} stroke={1.5} />
       <span>{item.label}</span>
+      
+      {item.label === "Resources" && <Badge size="xs" color="green">New!</Badge>}
     </Link>
   ));
   return (
