@@ -531,7 +531,7 @@ function Resources() {
       {/* Main Content */}
       <div className="md:ml-[300px] p-4 max-w-[1400px] mx-auto">
         {/* Header and Contribute Button */}
-        <div className="bg-[#25262b] rounded-lg p-6 mb-6 shadow-md">
+        <div className="bg-[#1A1B1E] rounded-lg p-6 mb-6 shadow-md">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
             <div>
               <Title order={1} className="text-2xl md:text-3xl font-bold mb-2">Resource Hub</Title>
@@ -556,7 +556,7 @@ function Resources() {
             icon={<IconSearch size={16} />}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="mb-4"
+            className="mb-4 bg-[#1A1B1E]"
             size="md"
             styles={{
               input: { 
@@ -568,7 +568,7 @@ function Resources() {
           />
           
           {/* Collapsible Filters */}
-          <Paper p="md" className="bg-[#2C2E33] border border-[#373A40] rounded-md">
+          <Paper p="md" className="bg-[#1A1B1E] border border-[#373A40] rounded-md">
             <Group position="apart" className="cursor-pointer" onClick={() => setFiltersExpanded(!filtersExpanded)}>
               <Group>
                 <IconFilter size={16} />
@@ -667,7 +667,7 @@ function Resources() {
         </div>
         
         {/* Resources Display */}
-        <div className="bg-[#25262b] rounded-lg p-6 shadow-md">
+        <div className="bg-[#1A1B1E] rounded-lg p-6 shadow-md">
           {loading ? (
             <div className="flex flex-col justify-center items-center py-20">
               <Loader size="lg" color="blue" />
@@ -764,7 +764,7 @@ function Resources() {
                           
                           <Stack spacing="xs" mt="md">
                             <Text size="sm" style={{ color: theme.colors.gray[3] }} lineClamp={2} className="min-h-[40px]">
-                              {resource.description || 'No description provided'}
+                              {resource.fileName || 'No description provided'}
                             </Text>
                             
                             <div className="mt-2 p-2 rounded-md" style={{ backgroundColor: theme.colors.dark[8] }}>
