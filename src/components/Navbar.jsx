@@ -271,7 +271,7 @@ export default function Navbar() {
               py={3} 
               radius="sm"
             >
-              v1.0
+              v1.5
             </Text>
           </Group>
           {links}
